@@ -29,7 +29,9 @@ type (
 func NewCloserHolder(args ...io.Closer) CloseHolder {
 	x := &closeHolder{}
 	for _, c := range args {
-		x.arr = append(x.arr, c)
+		if c != nil {
+			x.arr = append(x.arr, c)
+		}
 	}
 	return x
 }
@@ -46,12 +48,16 @@ func (ch *closeHolder) Close() (err error) {
 	return
 }
 
-func (ch *closeHolder) Append(c ...io.Closer) {
-	if len(c) == 0 {
+func (ch *closeHolder) Append(args ...io.Closer) {
+	if len(args) == 0 {
 		return
 	}
 	ch.mutex.Lock()
-	ch.arr = append(ch.arr, c...)
+	for _, c := range args {
+		if c != nil {
+			ch.arr = append(ch.arr, c)
+		}
+	}
 	ch.mutex.Unlock()
 }
 
