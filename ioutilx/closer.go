@@ -39,6 +39,9 @@ func NewCloserHolder(args ...io.Closer) CloseHolder {
 func (ch *closeHolder) Close() (err error) {
 	ch.mutex.Lock()
 	for _, c := range ch.arr {
+		if c == nil {
+			continue
+		}
 		if e := c.Close(); err == nil {
 			err = e
 		}
