@@ -4,6 +4,7 @@ import (
 	"io"
 	"sync"
 
+	"github.com/MineTakaki/go-utils"
 	"github.com/pkg/errors"
 )
 
@@ -29,8 +30,8 @@ type (
 func NewCloserHolder(args ...io.Closer) CloseHolder {
 	x := &closeHolder{}
 	for _, c := range args {
-		if z, ok := c.(io.Closer); ok {
-			x.arr = append(x.arr, z)
+		if !utils.IsNil(c) {
+			x.arr = append(x.arr, c)
 		}
 	}
 	return x
@@ -54,8 +55,8 @@ func (ch *closeHolder) Append(args ...io.Closer) {
 	}
 	ch.mutex.Lock()
 	for _, c := range args {
-		if z, ok := c.(io.Closer); ok {
-			ch.arr = append(ch.arr, z)
+		if !utils.IsNil(c) {
+			ch.arr = append(ch.arr, c)
 		}
 	}
 	ch.mutex.Unlock()
