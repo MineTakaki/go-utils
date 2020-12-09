@@ -17,6 +17,7 @@ func ReadTextLines(rd io.Reader, noSkip bool, fn func(string) string) (lines []s
 		line, err = r.ReadString('\n')
 		if err != nil {
 			if errors.Is(err, io.EOF) {
+				err = nil
 				break
 			}
 			err = errors.WithStack(err)
@@ -49,6 +50,7 @@ func ReadCSVTextLines(rd io.Reader, sep, comment rune) (lines [][]string, err er
 		cols, err = r.Read()
 		if err != nil {
 			if errors.Is(err, io.EOF) {
+				err = nil
 				break
 			}
 			err = errors.WithStack(err)
