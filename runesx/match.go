@@ -18,7 +18,7 @@ func MatchLengh(a, b []rune) (n int) {
 
 //MatchLenghLast 末尾から一致する長さを取得します
 func MatchLenghLast(a, b []rune) (n int) {
-	for i, j := len(a)-1, len(b)-1; i >= 0 && j >= 0 && a[i] == b[i]; {
+	for i, j := len(a)-1, len(b)-1; i >= 0 && j >= 0 && a[i] == b[j]; {
 		n++
 		i--
 		j--
