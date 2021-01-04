@@ -7,6 +7,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/shopspring/decimal"
+	"go.uber.org/zap/zapcore"
 )
 
 type (
@@ -59,6 +60,12 @@ func (d *Decimal) Scan(value interface{}) error {
 		return nil
 	}
 	return errors.WithStack(ErrScan)
+}
+
+//MarshalLogObject implements of zapcore.ObjectMarshaler interface.
+func (d Decimal) MarshalLogObject(enc zapcore.ObjectEncoder) error {
+	enc.AddString("decimal", d.String())
+	return nil
 }
 
 // Value implements the driver.Valuer interface for database serialization.

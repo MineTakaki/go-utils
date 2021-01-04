@@ -2,6 +2,8 @@ package decimal
 
 import (
 	"database/sql/driver"
+
+	"go.uber.org/zap/zapcore"
 )
 
 type (
@@ -31,6 +33,13 @@ func (d *NullDecimal) Scan(value interface{}) error {
 	}
 	d.Valid = true
 	return d.Decimal.Scan(value)
+}
+
+//MarshalLogObject implements of zapcore.ObjectMarshaler interface.
+func (d NullDecimal) MarshalLogObject(enc zapcore.ObjectEncoder) error {
+	enc.AddString("decimal", d.Decimal.String())
+	enc.AddBool("valid", d.Valid)
+	return nil
 }
 
 // Value implements the driver.Valuer interface for database serialization.
