@@ -8,6 +8,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/MineTakaki/go-utils/internal/conv"
 	"github.com/MineTakaki/go-utils/types/decimal"
 	orgdec "github.com/shopspring/decimal"
 )
@@ -82,34 +83,17 @@ var decimalType2 = reflect.TypeOf((*orgdec.Decimal)(nil)).Elem()
 var nullDecimalType2 = reflect.TypeOf((*orgdec.NullDecimal)(nil)).Elem()
 var sqlValuerType = reflect.TypeOf((*driver.Valuer)(nil)).Elem()
 
+//IsNil nilか判定します
+func IsNil(i interface{}) bool {
+	if i == nil {
+		return true
+	}
+	return !UnwrapNullable(reflect.ValueOf(i)).IsValid()
+}
+
 //UnwrapNullable sql.NullString等のNullableな型を考慮して値を取得します
 func UnwrapNullable(v reflect.Value) reflect.Value {
-	switch v.Kind() {
-	case reflect.Interface, reflect.Ptr:
-		if v.IsNil() {
-			return reflect.Value{}
-		}
-		return UnwrapNullable(v.Elem())
-	case reflect.Struct:
-		if v.NumField() < 2 {
-			return v
-		}
-		f2, ok := v.Type().FieldByNameFunc(func(name string) bool {
-			return name == "Valid"
-		})
-		if !ok || f2.Type.Kind() != reflect.Bool {
-			return v
-		}
-		if !v.FieldByIndex(f2.Index).Bool() {
-			return reflect.Value{}
-		}
-		f1 := v.Type().Field(0)
-		if f1.Name == f2.Name {
-			f1 = v.Type().Field(1)
-		}
-		return v.FieldByIndex(f1.Index)
-	}
-	return v
+	return conv.UnwrapNullable(v)
 }
 
 func basicKind(v reflect.Value) kind {

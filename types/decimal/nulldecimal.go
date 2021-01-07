@@ -25,6 +25,14 @@ var NullZero = NullDecimal{Valid: true}
 //NullCent NullDecimal型の100
 var NullCent = NullDecimal{Decimal: Cent, Valid: true}
 
+//String string return
+func (d NullDecimal) String() string {
+	if !d.Valid {
+		return ""
+	}
+	return d.Decimal.String()
+}
+
 // Scan implements the sql.Scanner interface for database deserialization.
 func (d *NullDecimal) Scan(value interface{}) error {
 	if value == nil {

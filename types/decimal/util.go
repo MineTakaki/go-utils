@@ -4,6 +4,7 @@ import (
 	"math/big"
 	"reflect"
 
+	"github.com/MineTakaki/go-utils/internal/conv"
 	"github.com/shopspring/decimal"
 )
 
@@ -79,19 +80,19 @@ func ValueOfWithRV(rv reflect.Value) (Decimal, bool) {
 	case typ.ConvertibleTo(stringType):
 		return ValueOfWithRV(rv.Convert(stringType))
 	case typ.ConvertibleTo(decimalType):
-		if x, ok := rv.Convert(decimalType).Interface().(*Decimal); ok {
-			return *x, true
+		if x, ok := rv.Convert(decimalType).Interface().(Decimal); ok {
+			return x, true
 		}
 	case typ.ConvertibleTo(nullDecimalType):
-		if x, ok := rv.Convert(nullDecimalType).Interface().(*NullDecimal); ok {
+		if x, ok := rv.Convert(nullDecimalType).Interface().(NullDecimal); ok {
 			return x.Decimal, x.Valid
 		}
 	case typ.ConvertibleTo(decimalType2):
-		if x, ok := rv.Convert(decimalType2).Interface().(*decimal.Decimal); ok {
-			return Decimal{*x}, true
+		if x, ok := rv.Convert(decimalType2).Interface().(decimal.Decimal); ok {
+			return Decimal{x}, true
 		}
 	case typ.ConvertibleTo(nullDecimalType2):
-		if x, ok := rv.Convert(nullDecimalType2).Interface().(*decimal.NullDecimal); ok {
+		if x, ok := rv.Convert(nullDecimalType2).Interface().(decimal.NullDecimal); ok {
 			return Decimal{x.Decimal}, x.Valid
 		}
 	}
@@ -103,5 +104,5 @@ func ValueOf(value interface{}) (Decimal, bool) {
 	if value == nil {
 		return Decimal{}, false
 	}
-	return ValueOfWithRV(reflect.ValueOf(value))
+	return ValueOfWithRV(conv.UnwrapNullable(reflect.ValueOf(value)))
 }

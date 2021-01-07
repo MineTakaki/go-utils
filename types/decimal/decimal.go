@@ -48,7 +48,7 @@ var MarshalJSONWithoutQuotes = false
 var Zero = New(0, 1)
 
 // Cent constant, to make computations faster.
-var Cent = New(100, 1)
+var Cent = New(1, 2)
 
 //ErrScan Scan error
 var ErrScan = errors.New("scan value error")
