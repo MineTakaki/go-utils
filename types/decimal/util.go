@@ -47,6 +47,8 @@ func unquoteIfQuoted(arr []byte) string {
 //ValueOfWithRV Decimal型で返します
 func ValueOfWithRV(rv reflect.Value) (Decimal, bool) {
 	switch rv.Kind() {
+	case reflect.Invalid:
+		return Zero, false
 	case reflect.Ptr:
 		if !rv.IsNil() {
 			return ValueOfWithRV(rv.Elem())
