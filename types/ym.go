@@ -4,7 +4,6 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
-	"math"
 	"strconv"
 	"time"
 
@@ -16,8 +15,8 @@ type (
 	//Ym yyyyMM形式で年月を表す整数型
 	Ym int
 
-	//MdT MMdd形式で月日を表す整数型
-	MdT int
+	//Md MMdd形式で月日を表す整数型
+	Md int
 )
 
 //ErrValidate 値が適切でない
@@ -139,13 +138,23 @@ func (ym Ym) Term() (fm, to Ymd) {
 	return
 }
 
-func floatToInt(f float64) (n int64, err error) {
-	if f < math.MinInt64 || f > math.MaxInt64 {
-		err = ErrValidate
-	} else {
-		n = int64(f)
+//BetweenMonth 第1引数の月が第2,3引数の月の間に該当するか判定します
+func BetweenMonth(m, m1, m2 int) bool {
+	if m == 0 {
+		return false
 	}
-	return
+	if m1 <= m2 {
+		return m >= m1 && m <= m2
+	}
+	return m >= m1 || m <= m2
+}
+
+//BetweenMonth 2つの月の間に該当するか判定します。m1 > m2の場合は年を跨ぐ範囲として扱います
+func (ym Ym) BetweenMonth(m1, m2 int) bool {
+	if ym == 0 {
+		return false
+	}
+	return BetweenMonth(ym.Month(), m1, m2)
 }
 
 //Scan 年月を読み取ります
@@ -261,7 +270,7 @@ func ValidateYmd(y, m, d int) (bool, error) {
 }
 
 //String string型変換
-func (md MdT) String() string {
+func (md Md) String() string {
 	if md == 0 {
 		return ""
 	}
@@ -277,7 +286,7 @@ func (ym Ym) CsvFormat() string {
 }
 
 //Scan 文字列から月日を読み取ります
-func (md *MdT) Scan(s string) (err error) {
+func (md *Md) Scan(s string) (err error) {
 	if s == "" {
 		*md = 0
 		return
@@ -285,13 +294,13 @@ func (md *MdT) Scan(s string) (err error) {
 	var tm time.Time
 	tm, err = time.Parse("0102", s) // MMDD形式
 	if err == nil {
-		*md = MdT(int(tm.Month())*100 + tm.Day())
+		*md = Md(int(tm.Month())*100 + tm.Day())
 	}
 	return
 }
 
 //Between 二つの日付の間に入るか判定します
-func (md MdT) Between(f, t MdT) bool {
+func (md Md) Between(f, t Md) bool {
 	if md == 0 || f == 0 || t == 0 {
 		return false
 	}

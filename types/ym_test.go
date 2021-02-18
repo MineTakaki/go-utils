@@ -50,8 +50,38 @@ func TestYm(t *testing.T) {
 	}
 }
 
+//TestYmBetweenMonth Ym型のBetweenMonth()のテストケース
+func TestYmBetweenMonth(t *testing.T) {
+	type testData struct {
+		act    bool
+		ym     Ym
+		m1, m2 int
+	}
+	for _, d := range []testData{
+		{true, 202004, 4, 4},
+		{true, 202004, 4, 5},
+		{true, 202004, 3, 4},
+		{false, 202004, 3, 3},
+		{false, 202004, 5, 5},
+		{true, 202001, 12, 1},
+		{true, 202012, 12, 1},
+		{true, 202001, 12, 2},
+		{false, 202011, 12, 2},
+		{false, 202003, 12, 2},
+		{true, 202002, 12, 2},
+		{true, 202001, 12, 2},
+		{true, 202012, 12, 2},
+		{false, 202011, 12, 2},
+		{false, 0, 12, 2},
+	} {
+		if exp := d.ym.BetweenMonth(d.m1, d.m2); exp != d.act {
+			t.Errorf("exp:%v, %+v", exp, d)
+		}
+	}
+}
+
 func TestMd(t *testing.T) {
-	var fm, to MdT
+	var fm, to Md
 
 	if err := fm.Scan("1201"); err != nil {
 		t.Errorf("%v", err)
@@ -63,7 +93,7 @@ func TestMd(t *testing.T) {
 		return
 	}
 
-	if md := MdT(1231); !md.Between(fm, to) {
+	if md := Md(1231); !md.Between(fm, to) {
 		t.Errorf("(%v <= %v <= %v) is false", fm, md, to)
 		return
 	}

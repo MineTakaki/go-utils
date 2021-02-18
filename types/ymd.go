@@ -212,11 +212,27 @@ func (ymd Ymd) YearMonth() Ym {
 }
 
 //MonthDay 月日を取得します
-func (ymd Ymd) MonthDay() MdT {
-	return MdT(ymd % 10000)
+func (ymd Ymd) MonthDay() Md {
+	return Md(ymd % 10000)
 }
 
 //Between 二つの日付の間に入るか判定します
 func (ymd Ymd) Between(f, t Ymd) bool {
+	if ymd == 0 || f == 0 || t == 0 {
+		return false
+	}
 	return f <= ymd && ymd <= t
+}
+
+//BetweenMonth 2つの月の間に該当するか判定します。m1 > m2の場合は年を跨ぐ範囲として扱います
+func (ymd Ymd) BetweenMonth(m1, m2 int) bool {
+	if ymd == 0 {
+		return false
+	}
+	return BetweenMonth(ymd.Month(), m1, m2)
+}
+
+//BetweenMonthDay 2つの月日の間に該当するか判定します。md1 > md2の場合は年を跨ぐ範囲として扱います
+func (ymd Ymd) BetweenMonthDay(md1, md2 Md) bool {
+	return ymd.MonthDay().Between(md1, md2)
 }
