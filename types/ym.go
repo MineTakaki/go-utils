@@ -14,9 +14,6 @@ import (
 type (
 	//Ym yyyyMM形式で年月を表す整数型
 	Ym int
-
-	//Md MMdd形式で月日を表す整数型
-	Md int
 )
 
 //ErrValidate 値が適切でない
@@ -269,43 +266,10 @@ func ValidateYmd(y, m, d int) (bool, error) {
 	return false, errors.Wrapf(ErrValidate, "incorrect date value. y:%d, m:%d, d:%d", y, m, d)
 }
 
-//String string型変換
-func (md Md) String() string {
-	if md == 0 {
-		return ""
-	}
-	return fmt.Sprintf("%04d", md)
-}
-
 //CsvFormat CSV出力用のstring型変換
 func (ym Ym) CsvFormat() string {
 	if ym == 0 {
 		return ""
 	}
 	return strconv.Itoa(int(ym))
-}
-
-//Scan 文字列から月日を読み取ります
-func (md *Md) Scan(s string) (err error) {
-	if s == "" {
-		*md = 0
-		return
-	}
-	var tm time.Time
-	tm, err = time.Parse("0102", s) // MMDD形式
-	if err == nil {
-		*md = Md(int(tm.Month())*100 + tm.Day())
-	}
-	return
-}
-
-//Between 二つの日付の間に入るか判定します
-func (md Md) Between(f, t Md) bool {
-	if md == 0 || f == 0 || t == 0 {
-		return false
-	}
-	if f > t {
-		return md >= f || md <= t
-	}
-	return f <= md && md >= t
 }
