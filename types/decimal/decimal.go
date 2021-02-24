@@ -1,6 +1,7 @@
 package decimal
 
 import (
+	"database/sql"
 	"database/sql/driver"
 	"fmt"
 	"math/big"
@@ -596,4 +597,16 @@ func Avg(first Decimal, rest ...Decimal) Decimal {
 func RescalePair(d1 Decimal, d2 Decimal) (Decimal, Decimal) {
 	p1, p2 := decimal.RescalePair(d1.Decimal, d2.Decimal)
 	return Decimal{p1}, Decimal{p2}
+}
+
+//NullInt64 convert to sql.NullInt64
+func (d Decimal) NullInt64() sql.NullInt64 {
+	return sql.NullInt64{Int64: d.IntPart(), Valid: true}
+}
+
+//NullFloat64 convert to sql.NullFloat64
+func (d Decimal) NullFloat64() (f sql.NullFloat64) {
+	f.Float64, _ = d.Float64()
+	f.Valid = true
+	return
 }

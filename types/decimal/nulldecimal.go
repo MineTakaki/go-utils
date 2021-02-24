@@ -1,6 +1,7 @@
 package decimal
 
 import (
+	"database/sql"
 	"database/sql/driver"
 
 	"go.uber.org/zap/zapcore"
@@ -310,4 +311,16 @@ func (d NullDecimal) Truncate(precision int32) NullDecimal {
 		return Null
 	}
 	return d.Decimal.Truncate(precision).Nullable()
+}
+
+//NullInt64 convert to sql.NullInt64
+func (d NullDecimal) NullInt64() sql.NullInt64 {
+	return sql.NullInt64{Int64: d.Decimal.IntPart(), Valid: d.Valid}
+}
+
+//NullFloat64 convert to sql.NullFloat64
+func (d NullDecimal) NullFloat64() (f sql.NullFloat64) {
+	f.Float64, _ = d.Decimal.Float64()
+	f.Valid = d.Valid
+	return
 }
