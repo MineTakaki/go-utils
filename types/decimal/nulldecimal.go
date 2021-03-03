@@ -37,6 +37,7 @@ func (d NullDecimal) String() string {
 // Scan implements the sql.Scanner interface for database deserialization.
 func (d *NullDecimal) Scan(value interface{}) error {
 	if value == nil {
+		d.Decimal = Zero
 		d.Valid = false
 		return nil
 	}
