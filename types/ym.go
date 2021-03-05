@@ -120,19 +120,20 @@ func (ym Ym) GoTime() time.Time {
 //Term From～To
 func (ym Ym) Term() (fm, to Ymd) {
 	fm = Ymd(ym*100 + 1)
-
-	m := ym.Month()
-	d := tryGetLastDay(m)
-	if d != 0 {
-		to = Ymd(int(ym)*100 + d)
-		return
-	}
-
-	//末日がはっきりとしない場合(2月)、ライブラリに任せます
-	term := ym.GoTime().AddDate(0, 1, -1)
-	to = Ymd(term.Year()*10000 + int(term.Month())*100 + term.Day())
-
+	y, m := ym.Part()
+	to = Ymd(int(ym)*100 + LastDay(y, m))
 	return
+}
+
+//First 月初の年月日を取得します
+func (ym Ym) First() Ymd {
+	return Ymd(ym*100 + 1)
+}
+
+//Last 月末の年月日を取得します
+func (ym Ym) Last() Ymd {
+	y, m := ym.Part()
+	return Ymd(int(ym)*100 + LastDay(y, m))
 }
 
 //BetweenMonth 第1引数の月が第2,3引数の月の間に該当するか判定します
@@ -272,4 +273,9 @@ func (ym Ym) CsvFormat() string {
 		return ""
 	}
 	return strconv.Itoa(int(ym))
+}
+
+//IsLeapYear うるう年判定
+func IsLeapYear(y int) bool {
+	return ((y%4) == 0 && (y%100) != 0) || (y%400) == 0
 }

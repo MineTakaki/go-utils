@@ -118,32 +118,41 @@ func (ymd Ymd) GoTime() time.Time {
 	return time.Date(y, time.Month(m), d, 0, 0, 0, 0, time.Local)
 }
 
-func tryGetLastDay(m int) (d int) {
-	switch m {
-	case 1, 3, 5, 7, 8, 10, 12:
-		d = 31
-	case 4, 6, 9, 11:
-		d = 30
+//LastDay 最終日を取得します
+func LastDay(y, m int) (d int) {
+	if m < 1 || m > 12 {
+		return
+	}
+	d = _days[m-1]
+	if m == 2 {
+		if IsLeapYear(y) {
+			d++
+		}
 	}
 	return
 }
 
 //Add 年、月、日を加算します（減算はマイナス値を引数にセットします）
 func (ymd Ymd) Add(y, m, d int) Ymd {
-	//単純な計算で済む場合は計算で済ませる
-	if m == 0 {
+	year, month, day := ymd.Part()
+
+	year, month, day = AdjustDay(year, month, day)
+
+	//日から計算を行います
+	if d > 365 || d < -365 {
+		//数値が大きい場合はライブラリで一気に計算します（もしかしたこっちの方が速い？）
+		var x time.Month
+		year, x, day = ymd.GoTime().AddDate(0, 0, d).Date()
+		month = int(x)
+	} else {
 		year, month, day := ymd.Part()
-		year += y
 		day += d
 		if month >= 1 && month <= 12 && !((m == 2 && day > 28) || (m == 3 && day <= 0)) {
 			if day >= 1 {
 				for {
-					lday := tryGetLastDay(month)
-					if lday == 0 { //計算を諦めます
-						break
-					}
+					lday := LastDay(year, month)
 					if day <= lday {
-						return Ymd(year*10000 + month*100 + day)
+						return Ymd((year+y)*10000 + month*100 + day)
 					}
 					day -= lday
 					if month++; month > 12 {
@@ -151,34 +160,28 @@ func (ymd Ymd) Add(y, m, d int) Ymd {
 						year++
 					}
 				}
-			} else {
-				for {
-					if month--; month < 1 {
-						month = 12
-						year--
-					}
-					lday := tryGetLastDay(month)
-					if lday == 0 { //計算を諦めます
-						break
-					}
-					day += lday
-					if day >= 1 {
-						return Ymd(year*10000 + month*100 + day)
-					}
+			}
+			for {
+				if month--; month < 1 {
+					month = 12
+					year--
+				}
+				day += LastDay(year, month)
+				if day >= 1 {
+					return Ymd((year+y)*10000 + month*100 + day)
 				}
 			}
 		}
-	} else if d == 0 {
-		year, month, day := ymd.Part()
-		year += y
-		month += m
-
-		month-- //計算の為に-1します
-		year += month / 12
-		return Ymd(year*10000 + (month%12+1)*100 + day)
 	}
-	t := ymd.GoTime().AddDate(y, m, d)
-	return Ymd(t.Year()*10000 + int(t.Month())*100 + t.Day())
+
+	year += y
+	month += m
+	year += month / 12
+	month = ((month-1)%12 + 1)
+	if maxDay := _days[month-1]; day > maxDay {
+		return Ymd(year*10000 + month*100 + day)
+	}
+	return Ymd(year*10000 + month*100 + day)
 }
 
 //Prev 前日の値を取得します

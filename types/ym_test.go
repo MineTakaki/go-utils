@@ -158,3 +158,31 @@ func TestYmd(t *testing.T) {
 		return
 	}
 }
+
+func TestIsLeapYear(t *testing.T) {
+	type T struct {
+		y int
+		x bool
+	}
+
+	for _, x := range []T{
+		{y: 2000, x: true},
+		{y: 2001, x: false},
+		{y: 2002, x: false},
+		{y: 2003, x: false},
+		{y: 2004, x: true},
+		{y: 2020, x: true},
+		{y: 2021, x: false},
+		{y: 2022, x: false},
+		{y: 2023, x: false},
+		{y: 2024, x: true},
+		{y: 2100, x: false},
+		{y: 2200, x: false},
+		{y: 2300, x: false},
+		{y: 2400, x: true},
+	} {
+		if a := IsLeapYear(x.y); x.x != a {
+			t.Errorf("year:%d, expect=%v, actual=%v", x.y, x.x, a)
+		}
+	}
+}

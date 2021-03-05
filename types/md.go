@@ -95,34 +95,69 @@ func (md Md) Next() Md {
 var _days = []int{31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}
 
 //AdjustMonth 月の加減算後の正しい月を取得します
-func AdjustMonth(m int) (int, int) {
+func AdjustMonth(y, m int) (qy, qm int) {
 	if m < 1 {
 		dy := m/12 - 1
-		return m - dy*12, dy
+		qy = y + dy
+		qm = m - dy*12
+		return
 	} else if m > 12 {
 		dy := (m - 1) / 12
-		return m - dy*12, dy
+		qy = y + dy
+		qm = m - dy*12
+		return
 	}
-	return m, 0
+	qy, qm = y, m
+	return
 }
 
 //AdjustDay 日の加減算後の正しい日を取得します
-func AdjustDay(m, d int) (int, int) {
+func AdjustDay(y, m, d int) (int, int, int) {
 	if m < 1 || m > 12 {
-		m, _ = AdjustMonth(m)
+		y, m = AdjustMonth(y, m)
 	}
 
-	dm := 0
 	if d < 1 {
 		for d < 1 {
-			dm--
+			if m--; m < 1 {
+				m = 12
+				y--
+			}
+			d += LastDay(y, m)
+		}
+		return y, m, d
+	}
+
+	for {
+		maxd := LastDay(y, m)
+		if d <= maxd {
+			break
+		}
+		d -= maxd
+		if m++; m > 12 {
+			m = 1
+			y++
+		}
+	}
+	return y, m, d
+}
+
+//AdjustMd 月日の加減算後の正しい日を取得します(うるう年は考慮しない)
+func AdjustMd(m, d int) (int, int) {
+	if m < 1 {
+		m -= (m/12 - 1) * 12
+	} else if m > 12 {
+		m -= ((m - 1) / 12) * 12
+	}
+
+	if d < 1 {
+		for d < 1 {
 			if m--; m < 1 {
 				m = 12
 			}
-			maxd := _days[m-1]
-			d = d + maxd
+			d += _days[m-1]
 		}
-		return d, dm
+		return m, d
 	}
 
 	for {
@@ -130,30 +165,27 @@ func AdjustDay(m, d int) (int, int) {
 		if d <= maxd {
 			break
 		}
-		d = d - maxd
+		d -= maxd
 		if m++; m > 12 {
 			m = 1
 		}
-		dm++
 	}
-	return d, dm
+	return m, d
 }
 
 //Add 月、日を加算します（減算はマイナス値を引数にセットします）
 func (md Md) Add(dm, dd int) Md {
 	m, d := md.Part()
 
-	//月の状態を正常化します
-	m, _ = AdjustMonth(m)
-
-	//日を計算します
-	var x int
-	d, x = AdjustDay(m, d+dd)
-
-	//月を計算します
-	m, _ = AdjustMonth(m + dm + x)
+	//状態を正常化します
+	m, d = AdjustMd(m, d+dd)
 
 	return Md(m*100 + d)
+}
+
+//Adjust 月日を正しい形式に訂正します
+func (md Md) Adjust() Md {
+	return md.Add(0, 0)
 }
 
 //Scan 文字列から月日を読み取ります
