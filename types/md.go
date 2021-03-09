@@ -1,9 +1,12 @@
 package types
 
 import (
+	"database/sql/driver"
+	"encoding/json"
 	"fmt"
 
 	"github.com/MineTakaki/go-utils/conv"
+	"go.uber.org/zap/zapcore"
 )
 
 type (
@@ -46,6 +49,36 @@ func (md Md) String() string {
 		return ""
 	}
 	return fmt.Sprintf("%04d", md)
+}
+
+//Value driver.Valuerインターフェイスの実装
+func (md Md) Value() (driver.Value, error) {
+	if md == 0 {
+		return nil, nil
+	}
+	return int64(md), nil
+}
+
+//UnmarshalJSON json.Unmarshalerインターフェイスの実装
+func (md *Md) UnmarshalJSON(b []byte) (err error) {
+	var n int
+	err = json.Unmarshal(b, &n)
+	if err != nil {
+		return
+	}
+	*md = Md(n)
+	return
+}
+
+//MarshalJSON json.Marshalerの実装
+func (md *Md) MarshalJSON() ([]byte, error) {
+	return json.Marshal(int(*md))
+}
+
+//MarshalLogObject zapcore.ObjectMarshalerの実装
+func (md *Md) MarshalLogObject(enc zapcore.ObjectEncoder) error {
+	enc.AddString("md", md.String())
+	return nil
 }
 
 //Validate 年月が正しいか確認します

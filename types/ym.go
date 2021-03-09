@@ -9,6 +9,7 @@ import (
 
 	"github.com/MineTakaki/go-utils/conv"
 	"github.com/pkg/errors"
+	"go.uber.org/zap/zapcore"
 )
 
 type (
@@ -112,7 +113,18 @@ func (ym Ym) Add(dy, dm int) Ym {
 	return Ym(y*100 + m)
 }
 
-//GoTime go言語のTime型に変換します
+//Ymd 日を指定してYmd型を取得します
+func (ym Ym) Ymd(d int) Ymd {
+	xy, xm := ym.Part()
+	if d < 1 {
+		d = 1
+	} else if lday := LastDay(xy, xm); d > lday {
+		d = lday
+	}
+	return Ymd(xy*10000 + xm*100 + d)
+}
+
+//GoTime go言語のTime型を取得します
 func (ym Ym) GoTime() time.Time {
 	return time.Date(ym.Year(), time.Month(ym.Month()), 1, 0, 0, 0, 0, time.Local)
 }
@@ -190,6 +202,12 @@ func (ym *Ym) UnmarshalJSON(b []byte) (err error) {
 //MarshalJSON json.Marshalerの実装
 func (ym *Ym) MarshalJSON() ([]byte, error) {
 	return json.Marshal(int(*ym))
+}
+
+//MarshalLogObject zapcore.ObjectMarshalerの実装
+func (ym *Ym) MarshalLogObject(enc zapcore.ObjectEncoder) error {
+	enc.AddString("ym", ym.String())
+	return nil
 }
 
 func _validateMD(m, d int) bool {

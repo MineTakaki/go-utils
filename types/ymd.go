@@ -2,11 +2,13 @@ package types
 
 import (
 	"database/sql/driver"
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"time"
 
 	"github.com/MineTakaki/go-utils/conv"
+	"go.uber.org/zap/zapcore"
 )
 
 type (
@@ -92,6 +94,28 @@ func (ymd Ymd) Value() (driver.Value, error) {
 		return nil, nil
 	}
 	return int64(ymd), nil
+}
+
+//UnmarshalJSON json.Unmarshalerインターフェイスの実装
+func (ymd *Ymd) UnmarshalJSON(b []byte) (err error) {
+	var n int
+	err = json.Unmarshal(b, &n)
+	if err != nil {
+		return
+	}
+	*ymd = Ymd(n)
+	return
+}
+
+//MarshalJSON json.Marshalerの実装
+func (ymd *Ymd) MarshalJSON() ([]byte, error) {
+	return json.Marshal(int(*ymd))
+}
+
+//MarshalLogObject zapcore.ObjectMarshalerの実装
+func (ymd *Ymd) MarshalLogObject(enc zapcore.ObjectEncoder) error {
+	enc.AddString("ymd", ymd.String())
+	return nil
 }
 
 //Validate 年月日が正しいか確認します
@@ -182,6 +206,17 @@ func (ymd Ymd) Add(y, m, d int) Ymd {
 		return Ymd(year*10000 + month*100 + day)
 	}
 	return Ymd(year*10000 + month*100 + day)
+}
+
+//SetDay 日を指定した値で置き換えます
+func (ymd Ymd) SetDay(d int) Ymd {
+	xy, xm, _ := ymd.Part()
+	if d < 1 {
+		d = 1
+	} else if lday := LastDay(xy, xm); d > lday {
+		d = lday
+	}
+	return Ymd(xy*10000 + xm*100 + d)
 }
 
 //Prev 前日の値を取得します
