@@ -133,7 +133,7 @@ func toDecimal(r reflect.Value) decimal.Decimal {
 	if !ok {
 		panic("cannot convertible decimal.Decimal")
 	}
-	return decimal.Decimal{d}
+	return decimal.Decimal{Decimal: d}
 }
 
 func compareInt(n1, n2 int64) int {
