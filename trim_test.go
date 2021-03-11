@@ -21,6 +21,8 @@ func TestTrimFuncs(t *testing.T) {
 		C int
 		D *string
 		E *T
+		F []T
+		G []*T
 	}
 
 	d := "  dddd  "
@@ -32,11 +34,19 @@ func TestTrimFuncs(t *testing.T) {
 		b: "    bbbb ",
 		D: &d,
 		E: &z,
+		F: []T{
+			{A: "   xxxx   "},
+			{A: "   yyyy   "},
+		},
+		G: []*T{
+			{A: "  ggggg  "},
+		},
 	}
 	if err := TrimFuncs(&y, unicode.IsSpace); err != nil {
 		t.Errorf("%+v", err)
 	}
 	t.Logf("%+v", y)
 	t.Logf("d='%s'", d)
-	t.Logf("%+v", z)
+	t.Logf("z:%+v", z)
+	t.Logf("y.G[0]:%+v", y.G[0])
 }

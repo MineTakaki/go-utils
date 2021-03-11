@@ -34,19 +34,26 @@ func TrimFuncs(i interface{}, fn func(rune) bool) (err error) {
 				fnProc(x)
 			}
 		case reflect.Struct:
+			v.CanSet()
 			for i, num := 0, v.NumField(); i < num; i++ {
 				f := v.Field(i)
-				if !f.IsValid() || !f.CanSet() {
+				if !f.IsValid() {
 					continue
 				}
 				switch f.Kind() {
 				case reflect.String:
-					f.SetString(strings.TrimFunc(f.String(), fn))
-				case reflect.Ptr, reflect.Struct:
+					if f.CanSet() {
+						f.SetString(strings.TrimFunc(f.String(), fn))
+					}
+				case reflect.Ptr, reflect.Struct, reflect.Array, reflect.Slice:
 					fnProc(f)
 				}
 			}
 			return
+		case reflect.Array, reflect.Slice:
+			for i, num := 0, v.Len(); i < num; i++ {
+				fnProc(v.Index(i))
+			}
 		}
 	}
 
