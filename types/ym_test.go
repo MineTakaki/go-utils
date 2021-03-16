@@ -99,66 +99,6 @@ func TestMd(t *testing.T) {
 	}
 }
 
-func TestYmd(t *testing.T) {
-	var ymd Ymd
-
-	if err := ymd.Scan("20190301"); err != nil {
-		t.Errorf("%v", err)
-		return
-	} else if y := ymd.Year(); y != 2019 {
-		t.Errorf("%v: %d != 2019", ymd, y)
-		return
-	} else if m := ymd.Month(); m != 3 {
-		t.Errorf("%d != 3", m)
-		return
-	} else if d := ymd.Day(); d != 1 {
-		t.Errorf("%d != 1", d)
-		return
-	} else if py, pm, pd := ymd.Part(); py != y {
-		t.Errorf("%d != %d", py, y)
-		return
-	} else if pm != m {
-		t.Errorf("%d != %d", pm, m)
-		return
-	} else if pd != d {
-		t.Errorf("%d != %d", pd, d)
-		return
-	} else if ok, err := ymd.Validate(); err != nil {
-		t.Errorf("%v", err)
-		return
-	} else if !ok {
-		t.Error("Ymd.Validate() is not err, but result is false")
-		return
-	}
-
-	if err := ymd.Scan("20190229"); err != nil {
-		//Scanでは年月日チェックは行わない
-		t.Errorf("%v", err)
-		return
-	}
-
-	if ok, err := Ymd(20190229).Validate(); err == nil {
-		t.Error("validate 20190229 will ok, but not")
-		return
-	} else if ok {
-		t.Error("validate 20190229 will false, but not")
-		return
-	}
-
-	if err := ymd.Scan("20200229"); err != nil {
-		t.Errorf("scan '20200229' : %v", err)
-		return
-	}
-
-	if ok, err := Ymd(20200229).Validate(); err != nil {
-		t.Errorf("%v", err)
-		return
-	} else if !ok {
-		t.Error("validate 20200229 will true, but not")
-		return
-	}
-}
-
 func TestIsLeapYear(t *testing.T) {
 	type T struct {
 		y int
@@ -183,6 +123,31 @@ func TestIsLeapYear(t *testing.T) {
 	} {
 		if a := IsLeapYear(x.y); x.x != a {
 			t.Errorf("year:%d, expect=%v, actual=%v", x.y, x.x, a)
+		}
+	}
+}
+
+func TestYmAdd(t *testing.T) {
+	type T struct {
+		ym      Ym
+		y, m    int
+		exp     Ym
+		comment string
+	}
+
+	for _, x := range []T{
+		{202103, 1, 0, 202203, "+1年"},
+		{202103, -1, 0, 202003, "-1年"},
+		{202103, 0, +1, 202104, "+1月"},
+		{202102, 0, -1, 202101, "-1月"},
+		{202103, 0, +9, 202112, "+9月"},
+		{202103, 0, +10, 202201, "+10月で年跨ぎ(1月)"},
+		{202103, 0, +11, 202202, "+11月で年跨ぎ(2月)"},
+		{202103, 0, -3, 202012, "-3月で年跨ぎ(12月)"},
+		{202103, 0, -4, 202011, "-4月で年跨ぎ(11月)"},
+	} {
+		if ym := x.ym.Add(x.y, x.m); ym != x.exp {
+			t.Errorf("%v.Add(%d,%d), expect=%v, actual=%v: %s", x.ym, x.y, x.m, x.exp, ym, x.comment)
 		}
 	}
 }

@@ -37,34 +37,15 @@ func IsEmpty(i interface{}) bool {
 	if i == nil {
 		return true
 	}
-	if n, ok := i.(sql.NullString); ok {
-		return !n.Valid || n.String == ""
-	}
-	if n, ok := i.(sql.NullInt64); ok {
-		return !n.Valid
-	}
-	if n, ok := i.(sql.NullFloat64); ok {
-		return !n.Valid
-	}
-	if n, ok := i.(sql.NullBool); ok {
-		return !n.Valid
+
+	rv := UnwrapNullable(reflect.ValueOf(i))
+	if !rv.IsValid() {
+		return true
 	}
 
-	if n, ok := i.(*sql.NullString); ok {
-		return !n.Valid || n.String == ""
-	}
-	if n, ok := i.(*sql.NullInt64); ok {
-		return !n.Valid
-	}
-	if n, ok := i.(*sql.NullFloat64); ok {
-		return !n.Valid
-	}
-	if n, ok := i.(*sql.NullBool); ok {
-		return !n.Valid
-	}
-
-	if s, ok := i.(string); ok {
-		return s == ""
+	switch rv.Kind() {
+	case reflect.String, reflect.Array, reflect.Slice:
+		return rv.Len() == 0
 	}
 	return false
 }

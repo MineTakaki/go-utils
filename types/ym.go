@@ -99,17 +99,8 @@ func (ym Ym) Next() Ym {
 
 //Add 年、月を加算します（減算はマイナス値を引数にセットします）
 func (ym Ym) Add(dy, dm int) Ym {
-	y := ym.Year() + dy
-	m := ym.Month() + dm
-
-	for m > 12 {
-		y++
-		m -= 12
-	}
-	for m < 1 {
-		y--
-		m += 12
-	}
+	y, m := ym.Part()
+	y, m = AdjustMonth(y+dy, m+dm)
 	return Ym(y*100 + m)
 }
 
