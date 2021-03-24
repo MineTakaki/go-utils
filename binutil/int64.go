@@ -96,7 +96,7 @@ func GetInt64(b []byte) (d int64, n int, err error) {
 //ReadInt64 io.ReaderからPutInt64()で書き出したint64を読み取ります
 func ReadInt64(r io.Reader) (d int64, n int, err error) {
 	b := make([]byte, 11)
-	if _, err = r.Read(b); err != nil {
+	if _, err = r.Read(b[0:1]); err != nil {
 		err = errors.WithStack(err)
 		return
 	}
@@ -110,7 +110,7 @@ func ReadInt64(r io.Reader) (d int64, n int, err error) {
 		return
 	}
 	for ; n < 11; n++ {
-		if _, err = r.Read(b[n:n]); err != nil {
+		if _, err = r.Read(b[n : n+1]); err != nil {
 			err = errors.WithStack(err)
 			return
 		}
