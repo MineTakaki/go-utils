@@ -34,6 +34,34 @@ func (d NullDecimal) String() string {
 	return d.Decimal.String()
 }
 
+//Equal NullDecimal同士が同じか確認します
+func (d NullDecimal) Equal(o NullDecimal) bool {
+	if d.Valid {
+		if !o.Valid {
+			return false
+		}
+		return d.Decimal.Equal(o.Decimal)
+	}
+	if o.Valid {
+		return false
+	}
+	return true //両方ともにNULL
+}
+
+//EqualNZ NullDecimal同士が同じか確認します(NULLはZEROと判断します)
+func (d NullDecimal) EqualNZ(o NullDecimal) bool {
+	if d.Valid {
+		if !o.Valid {
+			return d.Decimal.IsZero()
+		}
+		return d.Decimal.Equal(o.Decimal)
+	}
+	if o.Valid {
+		return o.Decimal.IsZero()
+	}
+	return true //両方ともにNULL
+}
+
 // Scan implements the sql.Scanner interface for database deserialization.
 func (d *NullDecimal) Scan(value interface{}) error {
 	if value == nil {
