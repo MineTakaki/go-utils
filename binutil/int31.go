@@ -1,22 +1,28 @@
 package binutil
 
-import "github.com/pkg/errors"
+import (
+	"io"
+
+	"github.com/pkg/errors"
+)
 
 //PutInt31 intをutf8 like なエンコードで[]byteに書き出します
 // マイナス値は対応しません
 func PutInt31(b []byte, d int) int {
-	u := uint32(d)
-	b[0] = byte(u & 0x7f)
-	if u >>= 7; u == 0 {
+	if d < 0 {
+		d = 0
+	}
+	b[0] = byte(d & 0x7f)
+	if d >>= 7; d == 0 {
 		return 1
 	}
 
 	b[0] += byte(0x80)
 	c := 1
 	for func() bool {
-		b[c] = byte((u & 0x3f) + 0x80)
-		u >>= 6
-		return u != 0
+		b[c] = byte((d & 0x3f) + 0x80)
+		d >>= 6
+		return d != 0
 	}() {
 		b[c] += 0x40
 		c++
@@ -48,4 +54,76 @@ func GetInt31(b []byte) (int, int, error) {
 		return int(b[0]&0x7f) + (int(b[1]&0x3f)+(int(b[2]&0x3f)+(int(b[3]&0x3f)+int(b[4]&0x3f)<<6)<<6)<<6)<<7, 5, nil //31
 	}
 	return 0, 0, errors.Errorf("decode error")
+}
+
+func ReadInt31(r io.Reader) (d, n int, err error) {
+	b := make([]byte, 1)
+	if _, err = r.Read(b); err != nil {
+		err = errors.WithStack(err)
+		return
+	}
+	n++
+	d = int(b[0] & 0x7f)
+	if (b[0] & 0x80) == 0 {
+		return
+	}
+
+	if _, err = r.Read(b); err != nil {
+		err = errors.WithStack(err)
+		return
+	}
+	n++
+	d += int(b[0]&0x3f) << 7
+	if (b[0] & 0x80) == 0 {
+		err = errors.Errorf("decode error")
+		return
+	}
+	if (b[0] & 0x40) == 0 {
+		return
+	}
+
+	if _, err = r.Read(b); err != nil {
+		err = errors.WithStack(err)
+		return
+	}
+	n++
+	d += int(b[0]&0x3f) << 13
+	if (b[0] & 0x80) == 0 {
+		err = errors.Errorf("decode error")
+		return
+	}
+	if (b[0] & 0x40) == 0 {
+		return
+	}
+
+	if _, err = r.Read(b); err != nil {
+		err = errors.WithStack(err)
+		return
+	}
+	n++
+	d += int(b[0]&0x3f) << 19
+	if (b[0] & 0x80) == 0 {
+		err = errors.Errorf("decode error")
+		return
+	}
+	if (b[0] & 0x40) == 0 {
+		return
+	}
+
+	if _, err = r.Read(b); err != nil {
+		err = errors.WithStack(err)
+		return
+	}
+	n++
+	d += int(b[0]&0x3f) << 25
+	if (b[0] & 0x80) == 0 {
+		err = errors.Errorf("decode error")
+		return
+	}
+	if (b[0] & 0x40) == 0 {
+		return
+	}
+
+	err = errors.Errorf("decode error")
+	return
 }
