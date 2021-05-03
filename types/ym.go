@@ -288,3 +288,19 @@ func (ym Ym) CsvFormat() string {
 func IsLeapYear(y int) bool {
 	return ((y%4) == 0 && (y%100) != 0) || (y%400) == 0
 }
+
+//Min 指定した年月と比較して小さい値を返します
+func (ym Ym) Min(o Ym) Ym {
+	if ym > o {
+		return o
+	}
+	return ym
+}
+
+//Max 指定した年月と比較して大きい値を返します
+func (ym Ym) Max(o Ym) Ym {
+	if ym < o {
+		return o
+	}
+	return ym
+}

@@ -162,19 +162,27 @@ func (ymd Ymd) Add(y, m, d int) Ymd {
 	year, month, day := ymd.Part()
 
 	//日から計算を行います
-	if d > 365 || d < -365 {
-		//数値が大きい場合はライブラリで一気に計算します（もしかしたこっちの方が速い？）
-		var x time.Month
-		year, x, day = ymd.GoTime().AddDate(0, 0, d).Date()
-		month = int(x)
-	} else if d != 0 {
+	if d != 0 {
 		year, month, day = AdjustDay(year, month, day+d)
 	}
 
-	year, month = AdjustMonth(year+y, month+m)
-	if maxDay := _days[month-1]; day > maxDay {
-		return Ymd(year*10000 + month*100 + maxDay)
+	if m != 0 {
+		year, month = AdjustMonth(year, month+m)
+		if maxDay := LastDay(year, month); day > maxDay {
+			if d == 0 { //日付の加減算が無い場合は最終日にします
+				day = maxDay
+			} else if month == 12 { //最終月の場合は翌年
+				year++
+				month = 1
+				day -= maxDay
+			} else { //翌月
+				month++
+				day -= maxDay
+			}
+		}
 	}
+
+	year += y
 	return Ymd(year*10000 + month*100 + day)
 }
 
@@ -243,4 +251,37 @@ func (ymd Ymd) BetweenMonth(m1, m2 int) bool {
 //BetweenMonthDay 2つの月日の間に該当するか判定します。md1 > md2の場合は年を跨ぐ範囲として扱います
 func (ymd Ymd) BetweenMonthDay(md1, md2 Md) bool {
 	return ymd.MonthDay().Between(md1, md2)
+}
+
+//Min 指定した日付と比較して小さい値を返します
+func (ymd Ymd) Min(o Ymd) Ymd {
+	if ymd > o {
+		return o
+	}
+	return ymd
+}
+
+//Max 指定した日付と比較して大きい値を返します
+func (ymd Ymd) Max(o Ymd) Ymd {
+	if ymd < o {
+		return o
+	}
+	return ymd
+}
+
+//Days グレゴリウス暦1年1月1日からの経過日数を取得します
+func (ymd Ymd) Days() int {
+	y, m, d := ymd.Part()
+
+	// 1・2月 → 前年の13・14月
+	if m <= 2 {
+		y--
+		m += 12
+	}
+
+	dy := 365 * (y - 1) // 経過年数×365日
+	c := y / 100
+	dl := (y >> 2) - c + (c >> 2) // うるう年分
+	dm := (m*979 - 1033) >> 5     // 1月1日から m 月1日までの日数
+	return dy + dl + dm + d - 1
 }

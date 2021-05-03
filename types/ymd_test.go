@@ -150,3 +150,15 @@ func TestYmdAdd(t *testing.T) {
 		}
 	}
 }
+
+func TestDays(t *testing.T) {
+	now := YmdNow()
+	n := 0
+	for ymd := Ymd(10101); ymd <= now; ymd = ymd.Next() {
+		if days := ymd.Days(); days != n {
+			t.Errorf("days no match %d: %d != %d", ymd, days, n)
+			break
+		}
+		n++
+	}
+}
