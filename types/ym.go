@@ -291,7 +291,7 @@ func IsLeapYear(y int) bool {
 
 //Min 指定した年月と比較して小さい値を返します
 func (ym Ym) Min(o Ym) Ym {
-	if ym > o {
+	if ym == 0 || ym > o {
 		return o
 	}
 	return ym
@@ -299,7 +299,7 @@ func (ym Ym) Min(o Ym) Ym {
 
 //Max 指定した年月と比較して大きい値を返します
 func (ym Ym) Max(o Ym) Ym {
-	if ym < o {
+	if ym == 0 || ym < o {
 		return o
 	}
 	return ym
