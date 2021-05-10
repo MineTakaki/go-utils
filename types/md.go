@@ -62,9 +62,11 @@ func (md Md) Value() (driver.Value, error) {
 //UnmarshalJSON json.Unmarshalerインターフェイスの実装
 func (md *Md) UnmarshalJSON(b []byte) (err error) {
 	var n int
-	err = json.Unmarshal(b, &n)
-	if err != nil {
-		return
+	if len(b) != 0 {
+		err = json.Unmarshal(b, &n)
+		if err != nil {
+			return
+		}
 	}
 	*md = Md(n)
 	return

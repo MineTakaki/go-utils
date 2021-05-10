@@ -99,9 +99,11 @@ func (ymd Ymd) Value() (driver.Value, error) {
 //UnmarshalJSON json.Unmarshalerインターフェイスの実装
 func (ymd *Ymd) UnmarshalJSON(b []byte) (err error) {
 	var n int
-	err = json.Unmarshal(b, &n)
-	if err != nil {
-		return
+	if len(b) != 0 {
+		err = json.Unmarshal(b, &n)
+		if err != nil {
+			return
+		}
 	}
 	*ymd = Ymd(n)
 	return
