@@ -68,25 +68,33 @@ func (ymd Ymd) CsvFormat() string {
 }
 
 //Scan 年月日を読み取ります
-func (ymd *Ymd) Scan(i interface{}) (err error) {
+func (ymd *Ymd) Scan(i interface{}) error {
 	if conv.IsEmpty(i) {
 		*ymd = 0
-		return
+		return nil
 	}
 
 	if tm, ok := i.(time.Time); ok {
 		*ymd = Ymd(tm.Year()*10000 + int(tm.Month())*100 + tm.Day())
-		return
+		return nil
 	}
 	if tm, ok := i.(*time.Time); ok {
 		*ymd = Ymd(tm.Year()*10000 + int(tm.Month())*100 + tm.Day())
-		return
+		return nil
 	}
 	if n, ok := conv.Int(i); ok {
 		*ymd = Ymd(n)
-		return
+		return nil
 	}
-	return ErrValidate
+	if s, ok := i.(string); ok {
+		for _, layout := range []string{"2006-01-02", "2006/01/02"} {
+			if tm, err := time.Parse(layout, s); err == nil {
+				*ymd = Ymd(tm.Year()*10000 + int(tm.Month())*100 + tm.Day())
+				return nil
+			}
+		}
+	}
+	return errors.WithStack(ErrValidate)
 }
 
 //Value driver.Valuerインターフェイスの実装
@@ -99,13 +107,13 @@ func (ymd Ymd) Value() (driver.Value, error) {
 
 //UnmarshalJSON json.Unmarshalerインターフェイスの実装
 func (ymd *Ymd) UnmarshalJSON(b []byte) (err error) {
-	var n json.Number
-	if err = json.Unmarshal(b, &n); err != nil {
+	var s interface{}
+	if err = json.Unmarshal(b, &s); err != nil {
 		err = errors.WithStack(err)
 		return
 	}
 	var x Ymd
-	if x, err = ParseYmd(n); err != nil {
+	if x, err = ParseYmd(s); err != nil {
 		return
 	}
 	*ymd = x

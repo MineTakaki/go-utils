@@ -1,6 +1,7 @@
 package types
 
 import (
+	"encoding/json"
 	"testing"
 	"time"
 )
@@ -160,5 +161,31 @@ func TestDays(t *testing.T) {
 			break
 		}
 		n++
+	}
+}
+
+func TestYmdUnmarshalJson(t *testing.T) {
+	type T struct {
+		src string
+		exp Ymd
+		ok  bool
+	}
+	for _, x := range []T{
+		{"\"19980101\"", 19980101, true},
+		{"\"1998/01/01\"", 19980101, true},
+		{"19980101", 19980101, true},
+		{"null", 0, true},
+		{"\"\"", 0, true},
+	} {
+		var ymd Ymd
+		if err := json.Unmarshal([]byte(x.src), &ymd); err != nil {
+			if x.ok {
+				t.Errorf("%+v", err)
+			}
+			continue
+		}
+		if ymd != x.exp {
+			t.Errorf("%s: exp=%d, act=%d", x.src, x.exp, ymd)
+		}
 	}
 }

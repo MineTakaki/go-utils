@@ -62,13 +62,13 @@ func (md Md) Value() (driver.Value, error) {
 
 //UnmarshalJSON json.Unmarshalerインターフェイスの実装
 func (md *Md) UnmarshalJSON(b []byte) (err error) {
-	var n json.Number
-	if err = json.Unmarshal(b, &n); err != nil {
+	var s interface{}
+	if err = json.Unmarshal(b, &s); err != nil {
 		err = errors.WithStack(err)
 		return
 	}
 	var x Md
-	if x, err = ParseMd(n); err != nil {
+	if x, err = ParseMd(s); err != nil {
 		return
 	}
 	*md = x
@@ -236,7 +236,7 @@ func (md *Md) Scan(i interface{}) (err error) {
 		*md = Md(n)
 		return
 	}
-	return ErrValidate
+	return errors.WithStack(ErrValidate)
 }
 
 //Between 二つの日付の間に入るか判定します

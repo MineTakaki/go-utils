@@ -164,11 +164,27 @@ func (ym *Ym) Scan(i interface{}) (err error) {
 		*ym = 0
 		return nil
 	}
+	if tm, ok := i.(time.Time); ok {
+		*ym = Ym(tm.Year()*100 + int(tm.Month()))
+		return nil
+	}
+	if tm, ok := i.(*time.Time); ok {
+		*ym = Ym(tm.Year()*100 + int(tm.Month()))
+		return nil
+	}
 	if n, ok := conv.Int(i); ok {
 		*ym = Ym(n)
 		return
 	}
-	return ErrValidate
+	if s, ok := i.(string); ok {
+		for _, layout := range []string{"2006-01", "2006/01"} {
+			if tm, err := time.Parse(layout, s); err == nil {
+				*ym = Ym(tm.Year()*100 + int(tm.Month()))
+				return nil
+			}
+		}
+	}
+	return errors.WithStack(ErrValidate)
 }
 
 //Value driver.Valuerインターフェイスの実装
@@ -181,13 +197,13 @@ func (ym Ym) Value() (driver.Value, error) {
 
 //UnmarshalJSON json.Unmarshalerインターフェイスの実装
 func (ym *Ym) UnmarshalJSON(b []byte) (err error) {
-	var n json.Number
-	if err = json.Unmarshal(b, &n); err != nil {
+	var s interface{}
+	if err = json.Unmarshal(b, &s); err != nil {
 		err = errors.WithStack(err)
 		return
 	}
 	var x Ym
-	if x, err = ParseYm(n); err != nil {
+	if x, err = ParseYm(s); err != nil {
 		return
 	}
 	*ym = x
