@@ -181,14 +181,25 @@ func (ym Ym) Value() (driver.Value, error) {
 
 //UnmarshalJSON json.Unmarshalerインターフェイスの実装
 func (ym *Ym) UnmarshalJSON(b []byte) (err error) {
-	var n int
-	if len(b) != 0 {
-		err = json.Unmarshal(b, &n)
-		if err != nil {
-			return
-		}
+	var n json.Number
+	if err = json.Unmarshal(b, &n); err != nil {
+		err = errors.WithStack(err)
+		return
 	}
-	*ym = Ym(n)
+	if n == "" {
+		*ym = 0
+		return
+	}
+	var d int64
+	if d, err = strconv.ParseInt(n.String(), 10, 32); err != nil {
+		err = errors.WithStack(err)
+		return
+	}
+	x := Ym(int(d))
+	if _, err = x.Validate(); err != nil {
+		return
+	}
+	*ym = x
 	return
 }
 
@@ -209,7 +220,7 @@ func _validateMD(m, d int) bool {
 	} else if d < 1 || d > 31 {
 		return false
 	} else if m == 2 {
-		if d > 29 {
+		if d > 28 {
 			return false
 		}
 	} else if m == 4 || m == 6 || m == 9 || m == 11 {
@@ -230,7 +241,7 @@ func ValidateMd(m, d int) (bool, error) {
 
 //ValidateYear 年が有効か確認します
 func ValidateYear(y int) (bool, error) {
-	if y >= 2000 && y <= 2999 {
+	if y >= 1998 && y <= 2999 {
 		return true, nil
 	}
 	return false, errors.Wrapf(ErrValidate, "%d is not correct as a year value", y)
@@ -256,25 +267,15 @@ func ValidateYm(y, m int) (ok bool, err error) {
 
 //ValidateYmd 年月日が有効か確認します
 func ValidateYmd(y, m, d int) (bool, error) {
-	if _validateMD(m, d) {
-		if y == 9999 { //ターミネータ的な使用目的だけ例外的にOKとする
-			if m == 12 && d == 31 {
-				return true, nil
-			}
-		} else if y >= 1998 && y <= 2999 {
-			// 2月29日のうるう年以外はOK
-			if m != 2 || d != 29 {
-				return true, nil
-			}
-
-			// 2月29日のうるう年確認を行います
-			dt := time.Date(y, time.Month(m), d, 0, 0, 0, 0, time.Local)
-			if dt.Day() == d {
-				return true, nil
-			}
+	if y == 9999 { //ターミネータ的な使用目的だけ例外的にOKとする
+		if m == 12 && d == 31 {
+			return true, nil
+		}
+	} else if y >= 1998 && y <= 2999 && m >= 1 && m <= 12 && d >= 1 {
+		if lday := LastDay(y, m); d <= lday {
+			return true, nil
 		}
 	}
-
 	return false, errors.Wrapf(ErrValidate, "incorrect date value. y:%d, m:%d, d:%d", y, m, d)
 }
 

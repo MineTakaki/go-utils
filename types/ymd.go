@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/MineTakaki/go-utils/conv"
+	"github.com/pkg/errors"
 	"go.uber.org/zap/zapcore"
 )
 
@@ -98,14 +99,25 @@ func (ymd Ymd) Value() (driver.Value, error) {
 
 //UnmarshalJSON json.Unmarshalerインターフェイスの実装
 func (ymd *Ymd) UnmarshalJSON(b []byte) (err error) {
-	var n int
-	if len(b) != 0 {
-		err = json.Unmarshal(b, &n)
-		if err != nil {
-			return
-		}
+	var n json.Number
+	if err = json.Unmarshal(b, &n); err != nil {
+		err = errors.WithStack(err)
+		return
 	}
-	*ymd = Ymd(n)
+	if n == "" {
+		*ymd = 0
+		return
+	}
+	var d int64
+	if d, err = strconv.ParseInt(n.String(), 10, 32); err != nil {
+		err = errors.WithStack(err)
+		return
+	}
+	x := Ymd(int(d))
+	if _, err = x.Validate(); err != nil {
+		return
+	}
+	*ymd = x
 	return
 }
 
