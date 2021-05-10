@@ -268,7 +268,10 @@ func (ymd Ymd) BetweenMonthDay(md1, md2 Md) bool {
 
 //Min 指定した日付と比較して小さい値を返します
 func (ymd Ymd) Min(o Ymd) Ymd {
-	if ymd == 0 || ymd > o {
+	if ymd == 0 {
+		return o
+	}
+	if o != 0 && ymd > o {
 		return o
 	}
 	return ymd
@@ -276,7 +279,10 @@ func (ymd Ymd) Min(o Ymd) Ymd {
 
 //Max 指定した日付と比較して大きい値を返します
 func (ymd Ymd) Max(o Ymd) Ymd {
-	if ymd == 0 || ymd < o {
+	if ymd == 0 {
+		return o
+	}
+	if o != 0 && ymd < o {
 		return o
 	}
 	return ymd
