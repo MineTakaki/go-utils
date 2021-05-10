@@ -186,17 +186,8 @@ func (ym *Ym) UnmarshalJSON(b []byte) (err error) {
 		err = errors.WithStack(err)
 		return
 	}
-	if n == "" {
-		*ym = 0
-		return
-	}
-	var d int64
-	if d, err = strconv.ParseInt(n.String(), 10, 32); err != nil {
-		err = errors.WithStack(err)
-		return
-	}
-	x := Ym(int(d))
-	if _, err = x.Validate(); err != nil {
+	var x Ym
+	if x, err = ParseYm(n); err != nil {
 		return
 	}
 	*ym = x

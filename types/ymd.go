@@ -104,17 +104,8 @@ func (ymd *Ymd) UnmarshalJSON(b []byte) (err error) {
 		err = errors.WithStack(err)
 		return
 	}
-	if n == "" {
-		*ymd = 0
-		return
-	}
-	var d int64
-	if d, err = strconv.ParseInt(n.String(), 10, 32); err != nil {
-		err = errors.WithStack(err)
-		return
-	}
-	x := Ymd(int(d))
-	if _, err = x.Validate(); err != nil {
+	var x Ymd
+	if x, err = ParseYmd(n); err != nil {
 		return
 	}
 	*ymd = x
