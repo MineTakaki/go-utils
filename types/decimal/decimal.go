@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"fmt"
+	"io"
 	"math/big"
 
 	"github.com/pkg/errors"
@@ -53,6 +54,27 @@ var Cent = New(1, 2)
 
 //ErrScan Scan error
 var ErrScan = errors.New("scan value error")
+
+//Format fmt.Formatterインターフェイスの実装
+func (d *Decimal) Format(s fmt.State, verb rune) {
+	switch verb {
+	case 'v', 's':
+		io.WriteString(s, d.String())
+	case 'q':
+		fmt.Fprintf(s, "%q", d.String())
+	}
+}
+
+//GoString fmt.GoStringer interface
+func (d Decimal) GoString() string {
+	if d.IsZero() {
+		return "decimal.Zero"
+	}
+	if d.Equal(Cent) {
+		return "decimal.Cent"
+	}
+	return "decimal.RequireFromString(\"" + d.String() + "\")"
+}
 
 // Scan implements the sql.Scanner interface for database deserialization.
 func (d *Decimal) Scan(value interface{}) error {

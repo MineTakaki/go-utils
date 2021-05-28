@@ -101,6 +101,14 @@ func init() {
 	}
 }
 
+func TestFormat(t *testing.T) {
+	t.Logf("%+v", RequireFromString("123.5"))
+	t.Logf("%#v", RequireFromString("123.5"))
+	t.Logf("%#v", RequireFromString("123.5").Nullable())
+	t.Logf("%#v", Cent)
+	t.Logf("%#v", Null)
+}
+
 func TestNewFromFloat(t *testing.T) {
 	for _, x := range testTable {
 		s := x.short

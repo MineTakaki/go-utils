@@ -3,6 +3,8 @@ package decimal
 import (
 	"database/sql"
 	"database/sql/driver"
+	"fmt"
+	"io"
 
 	"go.uber.org/zap/zapcore"
 )
@@ -60,6 +62,47 @@ func (d NullDecimal) EqualNZ(o NullDecimal) bool {
 		return o.Decimal.IsZero()
 	}
 	return true //両方ともにNULL
+}
+
+//Format fmt.Formatterインターフェイスの実装
+func (d *NullDecimal) Format(s fmt.State, verb rune) {
+	switch verb {
+	case 'v':
+		switch {
+		default:
+			if d.Valid {
+				io.WriteString(s, d.String())
+			} else {
+				io.WriteString(s, "")
+			}
+		case s.Flag('#'):
+			if d.Valid {
+				io.WriteString(s, "decimal.NullDecimal{"+d.String()+"}")
+			} else {
+				io.WriteString(s, "decimal.NullDecimal{}")
+			}
+		}
+	case 's':
+		if d.Valid {
+			io.WriteString(s, d.String())
+		} else {
+			io.WriteString(s, "")
+		}
+	}
+}
+
+//GoString fmt.GoStringer interface
+func (d NullDecimal) GoString() string {
+	if d.Valid {
+		if d.Equal(NullZero) {
+			return "decimal.NullZero"
+		}
+		if d.Equal(NullCent) {
+			return "decimal.NullCent"
+		}
+		return d.Decimal.GoString() + ".Nullable()"
+	}
+	return "decimal.Null"
 }
 
 // Scan implements the sql.Scanner interface for database deserialization.
