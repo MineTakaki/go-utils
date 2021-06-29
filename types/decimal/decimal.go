@@ -52,6 +52,21 @@ var Zero = New(0, 1)
 // Cent constant, to make computations faster.
 var Cent = New(1, 2)
 
+// Thousand constant, to make computations faster.
+var Thousand = New(1, 3)
+
+// One constant.
+var One = New(1, 0)
+
+// Two constant.
+var Two = New(2, 0)
+
+// Three constant.
+var Three = New(3, 0)
+
+// Ten constant, to make computations faster.
+var Ten = New(1, 1)
+
 //ErrScan Scan error
 var ErrScan = errors.New("scan value error")
 
