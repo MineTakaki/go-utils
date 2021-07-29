@@ -213,6 +213,9 @@ func AdjustMd(m, d int) (int, int) {
 
 //Add 月、日を加算します（減算はマイナス値を引数にセットします）
 func (md Md) Add(dm, dd int) Md {
+	if md == 0 {
+		return 0
+	}
 	m, d := md.Part()
 
 	//状態を正常化します

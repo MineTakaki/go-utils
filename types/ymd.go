@@ -150,10 +150,13 @@ func (ymd Ymd) Part() (y, m, d int) {
 }
 
 //GoTime go言語のTime型に変換します
-func (ymd Ymd) GoTime() time.Time {
-	y, m, d := ymd.Part()
-	y, m, d = AdjustDay(y, m, d)
-	return time.Date(y, time.Month(m), d, 0, 0, 0, 0, time.Local)
+func (ymd Ymd) GoTime() (tm time.Time) {
+	if ymd != 0 {
+		y, m, d := ymd.Part()
+		y, m, d = AdjustDay(y, m, d)
+		tm = time.Date(y, time.Month(m), d, 0, 0, 0, 0, time.Local)
+	}
+	return
 }
 
 //LastDay 最終日を取得します
@@ -172,6 +175,9 @@ func LastDay(y, m int) (d int) {
 
 //Add 年、月、日を加算します（減算はマイナス値を引数にセットします）
 func (ymd Ymd) Add(y, m, d int) Ymd {
+	if ymd == 0 {
+		return 0
+	}
 	year, month, day := ymd.Part()
 
 	//日から計算を行います
@@ -201,6 +207,9 @@ func (ymd Ymd) Add(y, m, d int) Ymd {
 
 //SetDay 日を指定した値で置き換えます
 func (ymd Ymd) SetDay(d int) Ymd {
+	if ymd == 0 {
+		return 0
+	}
 	xy, xm, _ := ymd.Part()
 	if d < 1 {
 		d = 1
@@ -290,6 +299,9 @@ func (ymd Ymd) Max(o Ymd) Ymd {
 
 //Days グレゴリウス暦1年1月1日からの経過日数を取得します
 func (ymd Ymd) Days() int {
+	if ymd == 0 {
+		return 0
+	}
 	y, m, d := ymd.Part()
 
 	// 1・2月 → 前年の13・14月

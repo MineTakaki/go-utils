@@ -99,6 +99,9 @@ func (ym Ym) Next() Ym {
 
 //Add 年、月を加算します（減算はマイナス値を引数にセットします）
 func (ym Ym) Add(dy, dm int) Ym {
+	if ym == 0 {
+		return 0
+	}
 	y, m := ym.Part()
 	y, m = AdjustMonth(y+dy, m+dm)
 	return Ym(y*100 + m)
@@ -106,6 +109,9 @@ func (ym Ym) Add(dy, dm int) Ym {
 
 //Ymd 日を指定してYmd型を取得します
 func (ym Ym) Ymd(d int) Ymd {
+	if ym == 0 {
+		return 0
+	}
 	xy, xm := ym.Part()
 	if d < 1 {
 		d = 1
@@ -116,12 +122,18 @@ func (ym Ym) Ymd(d int) Ymd {
 }
 
 //GoTime go言語のTime型を取得します
-func (ym Ym) GoTime() time.Time {
-	return time.Date(ym.Year(), time.Month(ym.Month()), 1, 0, 0, 0, 0, time.Local)
+func (ym Ym) GoTime() (tm time.Time) {
+	if ym != 0 {
+		tm = time.Date(ym.Year(), time.Month(ym.Month()), 1, 0, 0, 0, 0, time.Local)
+	}
+	return
 }
 
 //Term From～To
 func (ym Ym) Term() (fm, to Ymd) {
+	if ym == 0 {
+		return
+	}
 	fm = Ymd(ym*100 + 1)
 	y, m := ym.Part()
 	to = Ymd(int(ym)*100 + LastDay(y, m))
