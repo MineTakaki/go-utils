@@ -26,6 +26,20 @@ type (
 	}
 )
 
+//Close 指定して全ての Closer を呼び出します
+// エラーが起きても最後まで実行し、最初のエラーを返します
+func Close(args ...io.Closer) (err error) {
+	for _, c := range args {
+		if utils.IsNil(c) {
+			continue
+		}
+		if e := c.Close(); err == nil {
+			err = e
+		}
+	}
+	return
+}
+
 //NewCloserHolder CloserHolderを生成します
 func NewCloserHolder(args ...io.Closer) CloseHolder {
 	x := &closeHolder{}
