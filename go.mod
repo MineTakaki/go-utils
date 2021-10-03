@@ -13,8 +13,8 @@ require (
 	go.uber.org/zap v1.19.1
 	golang.org/x/lint v0.0.0-20210508222113-6edffad5e616 // indirect
 	golang.org/x/mod v0.5.1 // indirect
-	golang.org/x/sys v0.0.0-20210927094055-39ccf1dd6fa6
-	golang.org/x/tools v0.1.6 // indirect
+	golang.org/x/sys v0.0.0-20211003122950-b1ebd4e1001c
+	golang.org/x/tools v0.1.7 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
