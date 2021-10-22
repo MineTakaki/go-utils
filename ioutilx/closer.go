@@ -78,7 +78,7 @@ func (ch *closeHolder) Append(args ...io.Closer) {
 
 //CloseWithStack io.Closerのerrorにスタックトレースを追加します
 func CloseWithStack(c io.Closer) io.Closer {
-	if c == nil {
+	if utils.IsNil(c) {
 		return nil
 	}
 	return &closeWrap{c: c}
