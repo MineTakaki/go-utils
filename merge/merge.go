@@ -1,4 +1,4 @@
-package algorythm
+package merge
 
 //MergeU 大小比較によるマージ処理のヘルパー(キー値がユニークな場合のみ限定)
 func MergeU(
