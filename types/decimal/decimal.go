@@ -71,7 +71,7 @@ var Ten = New(1, 1)
 var ErrScan = errors.New("scan value error")
 
 //Format fmt.Formatterインターフェイスの実装
-func (d *Decimal) Format(s fmt.State, verb rune) {
+func (d Decimal) Format(s fmt.State, verb rune) {
 	switch verb {
 	case 'v':
 		switch {

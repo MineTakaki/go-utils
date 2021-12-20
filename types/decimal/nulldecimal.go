@@ -65,7 +65,7 @@ func (d NullDecimal) EqualNZ(o NullDecimal) bool {
 }
 
 //Format fmt.Formatterインターフェイスの実装
-func (d *NullDecimal) Format(s fmt.State, verb rune) {
+func (d NullDecimal) Format(s fmt.State, verb rune) {
 	switch verb {
 	case 'v':
 		switch {
