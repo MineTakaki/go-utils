@@ -73,7 +73,14 @@ var ErrScan = errors.New("scan value error")
 //Format fmt.Formatterインターフェイスの実装
 func (d *Decimal) Format(s fmt.State, verb rune) {
 	switch verb {
-	case 'v', 's':
+	case 'v':
+		switch {
+		case s.Flag('#'):
+			io.WriteString(s, d.GoString())
+			return
+		}
+		fallthrough
+	case 's':
 		io.WriteString(s, d.String())
 	case 'q':
 		fmt.Fprintf(s, "%q", d.String())

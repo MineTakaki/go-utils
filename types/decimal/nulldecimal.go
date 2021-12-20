@@ -69,19 +69,11 @@ func (d *NullDecimal) Format(s fmt.State, verb rune) {
 	switch verb {
 	case 'v':
 		switch {
-		default:
-			if d.Valid {
-				io.WriteString(s, d.String())
-			} else {
-				io.WriteString(s, "")
-			}
 		case s.Flag('#'):
-			if d.Valid {
-				io.WriteString(s, "decimal.NullDecimal{"+d.String()+"}")
-			} else {
-				io.WriteString(s, "decimal.NullDecimal{}")
-			}
+			io.WriteString(s, d.GoString())
+			return
 		}
+		fallthrough
 	case 's':
 		if d.Valid {
 			io.WriteString(s, d.String())
