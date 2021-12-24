@@ -53,10 +53,12 @@ func NewCloserHolder(args ...io.Closer) CloseHolder {
 
 func (ch *closeHolder) Close() (err error) {
 	ch.mutex.Lock()
-	for _, c := range ch.arr {
-		if e := c.Close(); err == nil {
+	for i := len(ch.arr); i > 0; {
+		i--
+		if e := ch.arr[i].Close(); err == nil {
 			err = e
 		}
+		ch.arr[i] = nil
 	}
 	ch.arr = nil
 	ch.mutex.Unlock()
