@@ -9,9 +9,6 @@ func MergeU(
 	i, j := 0, 0
 	for {
 		if i >= cntA {
-			if j >= cntB {
-				break
-			}
 			for ; j < cntB; j++ {
 				if err = merge(1, i, j); err != nil {
 					return
