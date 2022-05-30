@@ -125,7 +125,7 @@ func (d NullDecimal) Value() (driver.Value, error) {
 
 // UnmarshalJSON implements the json.Unmarshaler interface.
 func (d *NullDecimal) UnmarshalJSON(decimalBytes []byte) error {
-	if string(decimalBytes) == "null" {
+	if s := string(decimalBytes); s == "null" || s == `""` {
 		d.Valid = false
 		return nil
 	}
