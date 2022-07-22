@@ -39,15 +39,9 @@ func (d NullDecimal) String() string {
 //Equal NullDecimal同士が同じか確認します
 func (d NullDecimal) Equal(o NullDecimal) bool {
 	if d.Valid {
-		if !o.Valid {
-			return false
-		}
-		return d.Decimal.Equal(o.Decimal)
+		return o.Valid && d.Decimal.Equal(o.Decimal)
 	}
-	if o.Valid {
-		return false
-	}
-	return true //両方ともにNULL
+	return !o.Valid
 }
 
 //EqualNZ NullDecimal同士が同じか確認します(NULLはZEROと判断します)
@@ -62,6 +56,25 @@ func (d NullDecimal) EqualNZ(o NullDecimal) bool {
 		return o.Decimal.IsZero()
 	}
 	return true //両方ともにNULL
+}
+
+//LessThan NullDecimal同士を比較して小さいか確認します
+func (d NullDecimal) LessThan(o NullDecimal) bool {
+	if d.Valid {
+		return o.Valid && d.Decimal.LessThan(o.Decimal)
+	}
+	return o.Valid
+}
+
+//LessThan NullDecimal同士を比較して小さいか確認します(NULLはZEROと判断します)
+func (d NullDecimal) LessThanNZ(o NullDecimal) bool {
+	if d.Valid {
+		if o.Valid {
+			return d.Decimal.LessThan(o.Decimal)
+		}
+		return d.Decimal.LessThan(Zero)
+	}
+	return o.Valid && Zero.LessThan(o.Decimal)
 }
 
 //Format fmt.Formatterインターフェイスの実装
