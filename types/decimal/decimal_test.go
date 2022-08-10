@@ -613,40 +613,51 @@ func TestNullDecimalJSON(t *testing.T) {
 	var doc struct {
 		Amount NullDecimal `json:"amount"`
 	}
-	docStr := `{"amount": null}`
-	err := json.Unmarshal([]byte(docStr), &doc)
-	if err != nil {
-		t.Errorf("error unmarshaling %s: %v", docStr, err)
-	} else if doc.Amount.Valid {
-		t.Errorf("expected null value to have Valid = false, got Valid = true and Decimal = %s", doc.Amount.Decimal.String())
-	}
 
-	expected := `{"amount":null}`
-	out, err := json.Marshal(&doc)
-	if err != nil {
-		t.Errorf("error marshaling %+v: %v", doc, err)
-	} else if string(out) != expected {
-		t.Errorf("expected %s, got %s", expected, string(out))
-	}
+	MarshalJSONWithoutQuotes = false
+	for _, x := range []struct {
+		src   string
+		exp   NullDecimal
+		json  string
+		json2 string
+	}{
+		{src: `{"amount":null}`, exp: Null, json: `{"amount":null}`, json2: `{"amount":null}`},
+		{src: `{"amount":""}`, exp: Null, json: `{"amount":null}`, json2: `{"amount":null}`},
+	} {
+		if err := json.Unmarshal([]byte(x.src), &doc); err != nil {
+			t.Errorf("error unmarshaling %s: %v", x.src, err)
+			continue
+		}
+		if x.exp.Valid != doc.Amount.Valid || !x.exp.Decimal.Equal(doc.Amount.Decimal) {
+			t.Errorf("expected %#v, but actual %#s. src='%s'", x.exp, doc.Amount, x.src)
+			continue
+		}
 
-	// make sure unquoted marshalling works too
-	MarshalJSONWithoutQuotes = true
-	expectedUnquoted := `{"amount":null}`
-	out, err = json.Marshal(&doc)
-	if err != nil {
-		t.Errorf("error marshaling %+v: %v", doc, err)
-	} else if string(out) != expectedUnquoted {
-		t.Errorf("expected %s, got %s", expectedUnquoted, string(out))
+		if out, err := json.Marshal(&doc); err != nil {
+			t.Errorf("error marshaling %+v: %v", doc, err)
+			continue
+		} else if string(out) != x.json {
+			t.Errorf("expected %s, got %s", x.json, string(out))
+			continue
+		}
+
+		MarshalJSONWithoutQuotes = true
+		if out, err := json.Marshal(&doc); err != nil {
+			t.Errorf("error marshaling %+v: %v", doc, err)
+			continue
+		} else if string(out) != x.json2 {
+			t.Errorf("expected %s, got %s", x.json2, string(out))
+			continue
+		}
 	}
 	MarshalJSONWithoutQuotes = false
 }
 
 func TestNullDecimalBadJSON(t *testing.T) {
-	for _, testCase := range []string{
+	for i, testCase := range []string{
 		"]o_o[",
 		"{",
 		`{"amount":""`,
-		`{"amount":""}`,
 		`{"amount":"nope"}`,
 		`{"amount":nope}`,
 		`0.333`,
@@ -656,7 +667,7 @@ func TestNullDecimalBadJSON(t *testing.T) {
 		}
 		err := json.Unmarshal([]byte(testCase), &doc)
 		if err == nil {
-			t.Errorf("expected error, got %+v", doc)
+			t.Errorf("case[%d]: expected error, got %+v", i, doc)
 		}
 	}
 }
