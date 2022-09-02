@@ -189,3 +189,30 @@ func TestYmdUnmarshalJson(t *testing.T) {
 		}
 	}
 }
+
+func TestFFormatYmd(t *testing.T) {
+	for _, x := range []struct {
+		ymd  Ymd
+		sep  string
+		exp  string
+		expZ string
+	}{
+		{20220102, "/", "2022/01/02", "2022/1/2"},
+		{20220102, "-", "2022-01-02", "2022-1-2"},
+		{20221031, "/", "2022/10/31", "2022/10/31"},
+		{20221031, "-", "2022-10-31", "2022-10-31"},
+		{1000102, "/", "0100/01/02", "100/1/2"},
+		{100102, "-", "0010-01-02", "10-1-2"},
+		{10102, "/", "0001/01/02", "1/1/2"},
+		{302, "-", "0000-03-02", "0-3-2"},
+		{2, "-", "0000-00-02", "0-0-2"},
+		{0, "-", "", ""},
+	} {
+		if act := x.ymd.FormatYmd(x.sep, false); x.exp != act {
+			t.Errorf("expect(%s) != actual(%s)", x.exp, act)
+		}
+		if act := x.ymd.FormatYmd(x.sep, true); x.expZ != act {
+			t.Errorf("expect(%s) != actual(%s)", x.expZ, act)
+		}
+	}
+}

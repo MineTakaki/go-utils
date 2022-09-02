@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/MineTakaki/go-utils/conv"
@@ -17,13 +18,13 @@ type (
 	Ym int
 )
 
-//ErrValidate 値が適切でない
+// ErrValidate 値が適切でない
 var ErrValidate = errors.New("validate error")
 
-//ErrUnkownType 知らない型が指定されました
+// ErrUnkownType 知らない型が指定されました
 var ErrUnkownType = errors.New("unkown type")
 
-//ToYm 年月からYm型に変換します
+// ToYm 年月からYm型に変換します
 func ToYm(y, m int) (ym Ym, err error) {
 	_, err = ValidateYm(y, m)
 	if err != nil {
@@ -33,7 +34,7 @@ func ToYm(y, m int) (ym Ym, err error) {
 	return
 }
 
-//ParseYm Ym型に変換します
+// ParseYm Ym型に変換します
 func ParseYm(i interface{}) (ym Ym, err error) {
 	err = ym.Scan(i)
 	if err == nil {
@@ -42,7 +43,7 @@ func ParseYm(i interface{}) (ym Ym, err error) {
 	return
 }
 
-//ParseYm2 Ym型に変換します
+// ParseYm2 Ym型に変換します
 func ParseYm2(i interface{}, err *error) (ym Ym) {
 	var e error
 	ym, e = ParseYm(i)
@@ -52,7 +53,7 @@ func ParseYm2(i interface{}, err *error) (ym Ym) {
 	return
 }
 
-//String string型変換
+// String string型変換
 func (ym Ym) String() string {
 	if ym == 0 {
 		return ""
@@ -60,7 +61,27 @@ func (ym Ym) String() string {
 	return fmt.Sprintf("%06d", ym)
 }
 
-//Validate 年月が正しいか確認します
+// FormatYm YM形式でstring型に整形して変換します
+func (ym Ym) FormatYm(sep string, zeroSuppress bool) string {
+	if ym == 0 {
+		return ""
+	}
+	y, m := ym.Part()
+	sb := strings.Builder{}
+	sb.Grow(len(sep) + 6)
+	if zeroSuppress {
+		sb.WriteString(strconv.Itoa(y))
+		sb.WriteString(sep)
+		sb.WriteString(strconv.Itoa(m))
+		return sb.String()
+	}
+	sb.WriteString(fillZero4(y))
+	sb.WriteString(sep)
+	sb.WriteString(fillZero2(m))
+	return sb.String()
+}
+
+// Validate 年月が正しいか確認します
 func (ym Ym) Validate() (bool, error) {
 	if ym == 0 {
 		return true, nil
@@ -70,34 +91,34 @@ func (ym Ym) Validate() (bool, error) {
 	return ValidateYm(y, m)
 }
 
-//Year 年を取得します
+// Year 年を取得します
 func (ym Ym) Year() int {
 	return int(ym) / 100
 }
 
-//Month 月を取得します
+// Month 月を取得します
 func (ym Ym) Month() int {
 	return int(ym) % 100
 }
 
-//Part 年月の要素を取得します
+// Part 年月の要素を取得します
 func (ym Ym) Part() (y, m int) {
 	y = int(ym) / 100
 	m = int(ym) % 100
 	return
 }
 
-//Prev 一か月前の値を取得します
+// Prev 一か月前の値を取得します
 func (ym Ym) Prev() Ym {
 	return ym.Add(0, -1)
 }
 
-//Next 一か月後の値を取得します
+// Next 一か月後の値を取得します
 func (ym Ym) Next() Ym {
 	return ym.Add(0, 1)
 }
 
-//Add 年、月を加算します（減算はマイナス値を引数にセットします）
+// Add 年、月を加算します（減算はマイナス値を引数にセットします）
 func (ym Ym) Add(dy, dm int) Ym {
 	if ym == 0 {
 		return 0
@@ -107,7 +128,7 @@ func (ym Ym) Add(dy, dm int) Ym {
 	return Ym(y*100 + m)
 }
 
-//Ymd 日を指定してYmd型を取得します
+// Ymd 日を指定してYmd型を取得します
 func (ym Ym) Ymd(d int) Ymd {
 	if ym == 0 {
 		return 0
@@ -121,7 +142,7 @@ func (ym Ym) Ymd(d int) Ymd {
 	return Ymd(xy*10000 + xm*100 + d)
 }
 
-//GoTime go言語のTime型を取得します
+// GoTime go言語のTime型を取得します
 func (ym Ym) GoTime() (tm time.Time) {
 	if ym != 0 {
 		tm = time.Date(ym.Year(), time.Month(ym.Month()), 1, 0, 0, 0, 0, time.Local)
@@ -129,7 +150,7 @@ func (ym Ym) GoTime() (tm time.Time) {
 	return
 }
 
-//Term From～To
+// Term From～To
 func (ym Ym) Term() (fm, to Ymd) {
 	if ym == 0 {
 		return
@@ -140,18 +161,18 @@ func (ym Ym) Term() (fm, to Ymd) {
 	return
 }
 
-//First 月初の年月日を取得します
+// First 月初の年月日を取得します
 func (ym Ym) First() Ymd {
 	return Ymd(ym*100 + 1)
 }
 
-//Last 月末の年月日を取得します
+// Last 月末の年月日を取得します
 func (ym Ym) Last() Ymd {
 	y, m := ym.Part()
 	return Ymd(int(ym)*100 + LastDay(y, m))
 }
 
-//BetweenMonth 第1引数の月が第2,3引数の月の間に該当するか判定します
+// BetweenMonth 第1引数の月が第2,3引数の月の間に該当するか判定します
 func BetweenMonth(m, m1, m2 int) bool {
 	if m == 0 {
 		return false
@@ -162,7 +183,7 @@ func BetweenMonth(m, m1, m2 int) bool {
 	return m >= m1 || m <= m2
 }
 
-//BetweenMonth 2つの月の間に該当するか判定します。m1 > m2の場合は年を跨ぐ範囲として扱います
+// BetweenMonth 2つの月の間に該当するか判定します。m1 > m2の場合は年を跨ぐ範囲として扱います
 func (ym Ym) BetweenMonth(m1, m2 int) bool {
 	if ym == 0 {
 		return false
@@ -170,7 +191,7 @@ func (ym Ym) BetweenMonth(m1, m2 int) bool {
 	return BetweenMonth(ym.Month(), m1, m2)
 }
 
-//Scan 年月を読み取ります
+// Scan 年月を読み取ります
 func (ym *Ym) Scan(i interface{}) (err error) {
 	if conv.IsEmpty(i) {
 		*ym = 0
@@ -199,7 +220,7 @@ func (ym *Ym) Scan(i interface{}) (err error) {
 	return errors.WithStack(ErrValidate)
 }
 
-//Value driver.Valuerインターフェイスの実装
+// Value driver.Valuerインターフェイスの実装
 func (ym Ym) Value() (driver.Value, error) {
 	if ym == 0 {
 		return nil, nil
@@ -207,7 +228,7 @@ func (ym Ym) Value() (driver.Value, error) {
 	return int64(ym), nil
 }
 
-//UnmarshalJSON json.Unmarshalerインターフェイスの実装
+// UnmarshalJSON json.Unmarshalerインターフェイスの実装
 func (ym *Ym) UnmarshalJSON(b []byte) (err error) {
 	var s interface{}
 	if err = json.Unmarshal(b, &s); err != nil {
@@ -222,12 +243,12 @@ func (ym *Ym) UnmarshalJSON(b []byte) (err error) {
 	return
 }
 
-//MarshalJSON json.Marshalerの実装
+// MarshalJSON json.Marshalerの実装
 func (ym *Ym) MarshalJSON() ([]byte, error) {
 	return json.Marshal(int(*ym))
 }
 
-//MarshalLogObject zapcore.ObjectMarshalerの実装
+// MarshalLogObject zapcore.ObjectMarshalerの実装
 func (ym *Ym) MarshalLogObject(enc zapcore.ObjectEncoder) error {
 	enc.AddString("ym", ym.String())
 	return nil
@@ -250,7 +271,7 @@ func _validateMD(m, d int) bool {
 	return true
 }
 
-//ValidateMd 月日の関連をチェックします（うるう年の考慮はできません）
+// ValidateMd 月日の関連をチェックします（うるう年の考慮はできません）
 func ValidateMd(m, d int) (bool, error) {
 	if _validateMD(m, d) {
 		return true, nil
@@ -258,7 +279,7 @@ func ValidateMd(m, d int) (bool, error) {
 	return false, errors.Wrapf(ErrValidate, "incorrect month/day value. m:%d, d:%d", m, d)
 }
 
-//ValidateYear 年が有効か確認します
+// ValidateYear 年が有効か確認します
 func ValidateYear(y int) (bool, error) {
 	if y >= 1998 && y <= 2999 {
 		return true, nil
@@ -266,7 +287,7 @@ func ValidateYear(y int) (bool, error) {
 	return false, errors.Wrapf(ErrValidate, "%d is not correct as a year value", y)
 }
 
-//ValidateMonth 月が有効か確認します
+// ValidateMonth 月が有効か確認します
 func ValidateMonth(m int) (ok bool, err error) {
 	if m < 1 || m > 12 {
 		return false, errors.Wrapf(ErrValidate, "%d is not correct as a month value", m)
@@ -274,7 +295,7 @@ func ValidateMonth(m int) (ok bool, err error) {
 	return true, nil
 }
 
-//ValidateYm 年月が有効か確認します
+// ValidateYm 年月が有効か確認します
 func ValidateYm(y, m int) (ok bool, err error) {
 	ok, err = ValidateYear(y)
 	if err != nil {
@@ -284,7 +305,7 @@ func ValidateYm(y, m int) (ok bool, err error) {
 	return
 }
 
-//ValidateYmd 年月日が有効か確認します
+// ValidateYmd 年月日が有効か確認します
 func ValidateYmd(y, m, d int) (bool, error) {
 	if y == 9999 { //ターミネータ的な使用目的だけ例外的にOKとする
 		if m == 12 && d == 31 {
@@ -298,7 +319,7 @@ func ValidateYmd(y, m, d int) (bool, error) {
 	return false, errors.Wrapf(ErrValidate, "incorrect date value. y:%d, m:%d, d:%d", y, m, d)
 }
 
-//CsvFormat CSV出力用のstring型変換
+// CsvFormat CSV出力用のstring型変換
 func (ym Ym) CsvFormat() string {
 	if ym == 0 {
 		return ""
@@ -306,12 +327,12 @@ func (ym Ym) CsvFormat() string {
 	return strconv.Itoa(int(ym))
 }
 
-//IsLeapYear うるう年判定
+// IsLeapYear うるう年判定
 func IsLeapYear(y int) bool {
 	return ((y%4) == 0 && (y%100) != 0) || (y%400) == 0
 }
 
-//Min 指定した年月と比較して小さい値を返します
+// Min 指定した年月と比較して小さい値を返します
 func (ym Ym) Min(o Ym) Ym {
 	if ym == 0 {
 		return o
@@ -322,7 +343,7 @@ func (ym Ym) Min(o Ym) Ym {
 	return ym
 }
 
-//Max 指定した年月と比較して大きい値を返します
+// Max 指定した年月と比較して大きい値を返します
 func (ym Ym) Max(o Ym) Ym {
 	if ym == 0 {
 		return o

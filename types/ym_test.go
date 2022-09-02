@@ -50,7 +50,7 @@ func TestYm(t *testing.T) {
 	}
 }
 
-//TestYmBetweenMonth Ym型のBetweenMonth()のテストケース
+// TestYmBetweenMonth Ym型のBetweenMonth()のテストケース
 func TestYmBetweenMonth(t *testing.T) {
 	type testData struct {
 		act    bool
@@ -148,6 +148,32 @@ func TestYmAdd(t *testing.T) {
 	} {
 		if ym := x.ym.Add(x.y, x.m); ym != x.exp {
 			t.Errorf("%v.Add(%d,%d), expect=%v, actual=%v: %s", x.ym, x.y, x.m, x.exp, ym, x.comment)
+		}
+	}
+}
+
+func TestFFormatYm(t *testing.T) {
+	for _, x := range []struct {
+		ym   Ym
+		sep  string
+		exp  string
+		expZ string
+	}{
+		{202201, "/", "2022/01", "2022/1"},
+		{202201, "-", "2022-01", "2022-1"},
+		{202210, "/", "2022/10", "2022/10"},
+		{202210, "-", "2022-10", "2022-10"},
+		{10001, "/", "0100/01", "100/1"},
+		{1001, "-", "0010-01", "10-1"},
+		{101, "/", "0001/01", "1/1"},
+		{3, "-", "0000-03", "0-3"},
+		{0, "-", "", ""},
+	} {
+		if act := x.ym.FormatYm(x.sep, false); x.exp != act {
+			t.Errorf("expect(%s) != actual(%s)", x.exp, act)
+		}
+		if act := x.ym.FormatYm(x.sep, true); x.expZ != act {
+			t.Errorf("expect(%s) != actual(%s)", x.expZ, act)
 		}
 	}
 }

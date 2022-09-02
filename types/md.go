@@ -4,6 +4,8 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
+	"strconv"
+	"strings"
 
 	"github.com/MineTakaki/go-utils/conv"
 	"github.com/pkg/errors"
@@ -15,7 +17,7 @@ type (
 	Md int
 )
 
-//ToMd 月日からMd型に変換します
+// ToMd 月日からMd型に変換します
 func ToMd(m, d int) (md Md, err error) {
 	_, err = ValidateMd(m, d)
 	if err != nil {
@@ -25,7 +27,7 @@ func ToMd(m, d int) (md Md, err error) {
 	return
 }
 
-//ParseMd Md型に変換します
+// ParseMd Md型に変換します
 func ParseMd(i interface{}) (md Md, err error) {
 	err = md.Scan(i)
 	if err == nil {
@@ -34,7 +36,7 @@ func ParseMd(i interface{}) (md Md, err error) {
 	return
 }
 
-//ParseMd2 Md型に変換します
+// ParseMd2 Md型に変換します
 func ParseMd2(i interface{}, err *error) (md Md) {
 	var e error
 	md, e = ParseMd(i)
@@ -44,7 +46,7 @@ func ParseMd2(i interface{}, err *error) (md Md) {
 	return
 }
 
-//String string型変換
+// String string型変換
 func (md Md) String() string {
 	if md == 0 {
 		return ""
@@ -52,7 +54,27 @@ func (md Md) String() string {
 	return fmt.Sprintf("%04d", md)
 }
 
-//Value driver.Valuerインターフェイスの実装
+// FormatMd MD形式でstring型に整形して変換します
+func (md Md) FormatMd(sep string, zeroSuppress bool) string {
+	if md == 0 {
+		return ""
+	}
+	m, d := md.Part()
+	sb := strings.Builder{}
+	sb.Grow(len(sep) + 4)
+	if zeroSuppress {
+		sb.WriteString(strconv.Itoa(m))
+		sb.WriteString(sep)
+		sb.WriteString(strconv.Itoa(d))
+		return sb.String()
+	}
+	sb.WriteString(fillZero2(m))
+	sb.WriteString(sep)
+	sb.WriteString(fillZero2(d))
+	return sb.String()
+}
+
+// Value driver.Valuerインターフェイスの実装
 func (md Md) Value() (driver.Value, error) {
 	if md == 0 {
 		return nil, nil
@@ -60,7 +82,7 @@ func (md Md) Value() (driver.Value, error) {
 	return int64(md), nil
 }
 
-//UnmarshalJSON json.Unmarshalerインターフェイスの実装
+// UnmarshalJSON json.Unmarshalerインターフェイスの実装
 func (md *Md) UnmarshalJSON(b []byte) (err error) {
 	var s interface{}
 	if err = json.Unmarshal(b, &s); err != nil {
@@ -75,18 +97,18 @@ func (md *Md) UnmarshalJSON(b []byte) (err error) {
 	return
 }
 
-//MarshalJSON json.Marshalerの実装
+// MarshalJSON json.Marshalerの実装
 func (md *Md) MarshalJSON() ([]byte, error) {
 	return json.Marshal(int(*md))
 }
 
-//MarshalLogObject zapcore.ObjectMarshalerの実装
+// MarshalLogObject zapcore.ObjectMarshalerの実装
 func (md *Md) MarshalLogObject(enc zapcore.ObjectEncoder) error {
 	enc.AddString("md", md.String())
 	return nil
 }
 
-//Validate 年月が正しいか確認します
+// Validate 年月が正しいか確認します
 func (md Md) Validate() (bool, error) {
 	if md == 0 {
 		return true, nil
@@ -103,36 +125,36 @@ func abs(n int) int {
 	return n
 }
 
-//Month 月を取得します
+// Month 月を取得します
 func (md Md) Month() int {
 	return int(md) / 100
 }
 
-//Day 日を取得します
+// Day 日を取得します
 func (md Md) Day() int {
 	return abs(int(md)) % 100
 }
 
-//Part 月日の要素を取得します
+// Part 月日の要素を取得します
 func (md Md) Part() (m, d int) {
 	m = int(md) / 100
 	d = abs(int(md)) % 100
 	return
 }
 
-//Prev 前日の値を取得します（うるう年判定は行いません）
+// Prev 前日の値を取得します（うるう年判定は行いません）
 func (md Md) Prev() Md {
 	return md.Add(0, -1)
 }
 
-//Next 翌日の値を取得します（うるう年判定は行いません）
+// Next 翌日の値を取得します（うるう年判定は行いません）
 func (md Md) Next() Md {
 	return md.Add(0, 1)
 }
 
 var _days = []int{31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}
 
-//AdjustMonth 月の加減算後の正しい月を取得します
+// AdjustMonth 月の加減算後の正しい月を取得します
 func AdjustMonth(y, m int) (qy, qm int) {
 	if m < 1 {
 		dy := m/12 - 1
@@ -149,7 +171,7 @@ func AdjustMonth(y, m int) (qy, qm int) {
 	return
 }
 
-//AdjustDay 日の加減算後の正しい日を取得します
+// AdjustDay 日の加減算後の正しい日を取得します
 func AdjustDay(y, m, d int) (int, int, int) {
 	if m < 1 || m > 12 {
 		y, m = AdjustMonth(y, m)
@@ -180,7 +202,7 @@ func AdjustDay(y, m, d int) (int, int, int) {
 	return y, m, d
 }
 
-//AdjustMd 月日の加減算後の正しい日を取得します(うるう年は考慮しない)
+// AdjustMd 月日の加減算後の正しい日を取得します(うるう年は考慮しない)
 func AdjustMd(m, d int) (int, int) {
 	if m < 1 {
 		m -= (m/12 - 1) * 12
@@ -211,7 +233,7 @@ func AdjustMd(m, d int) (int, int) {
 	return m, d
 }
 
-//Add 月、日を加算します（減算はマイナス値を引数にセットします）
+// Add 月、日を加算します（減算はマイナス値を引数にセットします）
 func (md Md) Add(dm, dd int) Md {
 	if md == 0 {
 		return 0
@@ -224,12 +246,12 @@ func (md Md) Add(dm, dd int) Md {
 	return Md(m*100 + d)
 }
 
-//Adjust 月日を正しい形式に訂正します
+// Adjust 月日を正しい形式に訂正します
 func (md Md) Adjust() Md {
 	return md.Add(0, 0)
 }
 
-//Scan 文字列から月日を読み取ります
+// Scan 文字列から月日を読み取ります
 func (md *Md) Scan(i interface{}) (err error) {
 	if conv.IsEmpty(i) {
 		*md = 0
@@ -242,7 +264,7 @@ func (md *Md) Scan(i interface{}) (err error) {
 	return errors.WithStack(ErrValidate)
 }
 
-//Between 二つの日付の間に入るか判定します
+// Between 二つの日付の間に入るか判定します
 func (md Md) Between(f, t Md) bool {
 	if md == 0 || f == 0 || t == 0 {
 		return false

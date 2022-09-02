@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/MineTakaki/go-utils/conv"
@@ -65,6 +66,54 @@ func (ymd Ymd) CsvFormat() string {
 		return ""
 	}
 	return strconv.Itoa(int(ymd))
+}
+
+func fillZero4(y int) string {
+	if y < 0 {
+		y = -y
+	}
+	if y < 10 {
+		return "000" + strconv.Itoa(y)
+	} else if y < 100 {
+		return "00" + strconv.Itoa(y)
+	} else if y < 1000 {
+		return "0" + strconv.Itoa(y)
+	}
+	return strconv.Itoa(y)
+}
+
+func fillZero2(n int) string {
+	if n < 0 {
+		n = -n
+	}
+	if n < 10 {
+		return "0" + strconv.Itoa(n)
+	}
+	return strconv.Itoa(n)
+}
+
+// FormatYmd YMD形式でstring型に整形して変換します
+func (ymd Ymd) FormatYmd(sep string, zeroSuppress bool) string {
+	if ymd == 0 {
+		return ""
+	}
+	y, m, d := ymd.Part()
+	sb := strings.Builder{}
+	sb.Grow(len(sep)*2 + 8)
+	if zeroSuppress {
+		sb.WriteString(strconv.Itoa(y))
+		sb.WriteString(sep)
+		sb.WriteString(strconv.Itoa(m))
+		sb.WriteString(sep)
+		sb.WriteString(strconv.Itoa(d))
+		return sb.String()
+	}
+	sb.WriteString(fillZero4(y))
+	sb.WriteString(sep)
+	sb.WriteString(fillZero2(m))
+	sb.WriteString(sep)
+	sb.WriteString(fillZero2(d))
+	return sb.String()
 }
 
 // Scan 年月日を読み取ります

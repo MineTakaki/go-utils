@@ -66,3 +66,29 @@ func TestAdjustMd(t *testing.T) {
 		}
 	}
 }
+
+func TestFFormatMd(t *testing.T) {
+	for _, x := range []struct {
+		md   Md
+		sep  string
+		exp  string
+		expZ string
+	}{
+		{2331, ":", "23:31", "23:31"},
+		{102, ".", "01.02", "1.2"},
+		{2202, ":", "22:02", "22:2"},
+		{12302, ".", "123.02", "123.2"},
+		{123, ":", "01:23", "1:23"},
+		{102, ".", "01.02", "1.2"},
+		{51, ":", "00:51", "0:51"},
+		{3, ".", "00.03", "0.3"},
+		{0, ":", "", ""},
+	} {
+		if act := x.md.FormatMd(x.sep, false); x.exp != act {
+			t.Errorf("expect(%s) != actual(%s)", x.exp, act)
+		}
+		if act := x.md.FormatMd(x.sep, true); x.expZ != act {
+			t.Errorf("expect(%s) != actual(%s)", x.expZ, act)
+		}
+	}
+}
