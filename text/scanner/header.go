@@ -1,6 +1,7 @@
 package scanner
 
 import (
+	goerr "errors"
 	"reflect"
 	"strconv"
 	"strings"
@@ -25,6 +26,18 @@ type (
 	}
 )
 
+// ErrNotFoundField フィールドがありません
+var ErrNotFoundField = goerr.New("field not found")
+
+// ErrUnkownType 型が不明です
+var ErrUnkownType = goerr.New("unkown type")
+
+// ErrTooShortFields フィールド数が不足しています
+var ErrTooShortFields = goerr.New("too short length of fields")
+
+// ErrScanData スキャンエラー（変換エラー）
+var ErrScanData = goerr.New("data scan error")
+
 func rawStuctType(typ reflect.Type) (reflect.Type, error) {
 	for typ.Kind() == reflect.Ptr {
 		typ = typ.Elem()
@@ -35,7 +48,7 @@ func rawStuctType(typ reflect.Type) (reflect.Type, error) {
 	return typ, nil
 }
 
-//DefaultScanFunc 既定のフィールドスキャン関数を取得します
+// DefaultScanFunc 既定のフィールドスキャン関数を取得します
 func DefaultScanFunc(typ reflect.Type) (fn ScanFunc, err error) {
 	fnInt := func(v reflect.Value, s string) (err error) {
 		s = strings.TrimSpace(s)
@@ -44,7 +57,7 @@ func DefaultScanFunc(typ reflect.Type) (fn ScanFunc, err error) {
 			var bits int
 			switch v.Type().Kind() {
 			default:
-				return errors.Errorf("unkown type : %v", v.Type())
+				return errors.Wrapf(ErrScanData, "unkown type : %v", v.Type())
 			case reflect.Int64:
 				bits = 64
 			case reflect.Int, reflect.Int32:
@@ -55,9 +68,8 @@ func DefaultScanFunc(typ reflect.Type) (fn ScanFunc, err error) {
 				bits = 8
 			}
 			var err error
-			n, err = strconv.ParseInt(s, 10, bits)
-			if err != nil {
-				err = errors.WithStack(err)
+			if n, err = strconv.ParseInt(s, 10, bits); err != nil {
+				err = errors.Wrapf(ErrScanData, err.Error())
 				return err
 			}
 		}
@@ -71,7 +83,7 @@ func DefaultScanFunc(typ reflect.Type) (fn ScanFunc, err error) {
 			var bits int
 			switch v.Type().Kind() {
 			default:
-				return errors.Errorf("unkown type : %v", v.Type())
+				return errors.Wrapf(ErrScanData, "unkown type : %v", v.Type())
 			case reflect.Uint64:
 				bits = 64
 			case reflect.Uint, reflect.Uint32:
@@ -82,9 +94,8 @@ func DefaultScanFunc(typ reflect.Type) (fn ScanFunc, err error) {
 				bits = 8
 			}
 			var err error
-			n, err = strconv.ParseUint(s, 10, bits)
-			if err != nil {
-				err = errors.WithStack(err)
+			if n, err = strconv.ParseUint(s, 10, bits); err != nil {
+				err = errors.Wrapf(ErrScanData, err.Error())
 				return err
 			}
 		}
@@ -109,7 +120,7 @@ func DefaultScanFunc(typ reflect.Type) (fn ScanFunc, err error) {
 			}
 			return
 		}
-		err = errors.Errorf("unkown type : %v", typ)
+		err = errors.Wrapf(ErrScanData, "unkown type : %v", typ)
 	}
 
 	return
@@ -122,7 +133,7 @@ func parseTag(tag string) (name string, opt bool) {
 	return tag, false
 }
 
-func makeScanFields(typ reflect.Type, tagKey string, headers []string, fact ScanFuncFactory) (fields []*fieldDefT, err error) {
+func makeScanFields(typ reflect.Type, tagKey string, headers []string, fact ScanFuncFactory) ([]*fieldDefT, error) {
 	headerMap := map[string]int{}
 	for i, h := range headers {
 		if _, ok := headerMap[h]; ok {
@@ -133,6 +144,8 @@ func makeScanFields(typ reflect.Type, tagKey string, headers []string, fact Scan
 
 	scans := map[reflect.Type]ScanFunc{}
 
+	var fields []*fieldDefT
+	var err error
 	for i, m := 0, typ.NumField(); i < m; i++ {
 		f := typ.Field(i)
 
@@ -150,12 +163,12 @@ func makeScanFields(typ reflect.Type, tagKey string, headers []string, fact Scan
 			if scan == nil {
 				if fact != nil {
 					if scan, err = fact(f.Type, name, nil); err != nil {
-						return
+						return nil, err
 					}
 				}
 				if scan == nil {
 					if scan, err = DefaultScanFunc(f.Type); err != nil {
-						return
+						return nil, err
 					}
 				}
 			}
@@ -166,13 +179,15 @@ func makeScanFields(typ reflect.Type, tagKey string, headers []string, fact Scan
 		if fdef != nil {
 			fields = append(fields, fdef)
 		} else if req {
-			return nil, errors.Errorf("have no field of '%s'", name)
+			return nil, errors.Wrapf(ErrNotFoundField, "field('%s') not found", name)
 		}
 	}
-	return
+	return fields, nil
 }
 
-//WithHeader ヘッダーを指定してスキャナーを生成します
+// WithHeader ヘッダーを指定してスキャナーを生成します
+//
+//	headersの指定がnilの場合は最初の Scan() で与えた cols をヘッダとして扱います
 func WithHeader(i interface{}, tag string, headers []string, fact ScanFuncFactory) (Scanner, error) {
 	typ, err := rawStuctType(reflect.TypeOf(i))
 	if err != nil {
@@ -204,7 +219,7 @@ func (s *header) Scan(i interface{}, cols []string) (err error) {
 		v = v.Elem()
 	}
 	if typ := v.Type(); s.typ != typ {
-		return errors.Errorf("type unmatch : %v, %v", s.typ, typ)
+		return errors.Wrapf(ErrUnkownType, "type unmatch : %v, %v", s.typ, typ)
 	}
 
 	n := len(cols)
@@ -212,7 +227,7 @@ func (s *header) Scan(i interface{}, cols []string) (err error) {
 		//カラム数が足りない場合
 		if n <= f.col {
 			if f.req {
-				return errors.Errorf("have no field data of '%s', column=%d ", f.name, f.col)
+				return errors.Wrapf(ErrTooShortFields, "have no field data of '%s', column=%d ", f.name, f.col)
 			}
 			continue
 		}
