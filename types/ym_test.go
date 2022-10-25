@@ -1,6 +1,8 @@
 package types
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestYm(t *testing.T) {
 	if exp, act := Ym(201903), Ym(201904).Prev(); exp != act {
@@ -174,6 +176,25 @@ func TestFFormatYm(t *testing.T) {
 		}
 		if act := x.ym.FormatYm(x.sep, true); x.expZ != act {
 			t.Errorf("expect(%s) != actual(%s)", x.expZ, act)
+		}
+	}
+}
+
+func TestYmCompare(t *testing.T) {
+	for _, x := range []struct {
+		a, b Ym
+		c    int
+	}{
+		{0, 0, 0},
+		{0, 1, -1},
+		{1, 0, 1},
+		{1, 1, 0},
+		{202204, 202204, 0},
+		{202204, 202205, -1},
+		{202204, 202203, 1},
+	} {
+		if cmp := x.a.Compare(x.b); x.c != cmp {
+			t.Errorf("expect(%d) != actual(%d)", x.c, cmp)
 		}
 	}
 }

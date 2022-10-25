@@ -19,16 +19,16 @@ type (
 
 var _ driver.Valuer = &NullDecimal{}
 
-//Null NullDecimal型のNull値
+// Null NullDecimal型のNull値
 var Null = NullDecimal{}
 
-//NullZero NullDecimal型のZero値
+// NullZero NullDecimal型のZero値
 var NullZero = NullDecimal{Valid: true}
 
-//NullCent NullDecimal型の100
+// NullCent NullDecimal型の100
 var NullCent = NullDecimal{Decimal: Cent, Valid: true}
 
-//String string return
+// String string return
 func (d NullDecimal) String() string {
 	if !d.Valid {
 		return ""
@@ -36,7 +36,7 @@ func (d NullDecimal) String() string {
 	return d.Decimal.String()
 }
 
-//Equal NullDecimal同士が同じか確認します
+// Equal NullDecimal同士が同じか確認します
 func (d NullDecimal) Equal(o NullDecimal) bool {
 	if d.Valid {
 		return o.Valid && d.Decimal.Equal(o.Decimal)
@@ -44,7 +44,7 @@ func (d NullDecimal) Equal(o NullDecimal) bool {
 	return !o.Valid
 }
 
-//EqualNZ NullDecimal同士が同じか確認します(NULLはZEROと判断します)
+// EqualNZ NullDecimal同士が同じか確認します(NULLはZEROと判断します)
 func (d NullDecimal) EqualNZ(o NullDecimal) bool {
 	if d.Valid {
 		if !o.Valid {
@@ -58,7 +58,7 @@ func (d NullDecimal) EqualNZ(o NullDecimal) bool {
 	return true //両方ともにNULL
 }
 
-//LessThan NullDecimal同士を比較して小さいか確認します
+// LessThan NullDecimal同士を比較して小さいか確認します
 func (d NullDecimal) LessThan(o NullDecimal) bool {
 	if d.Valid {
 		return o.Valid && d.Decimal.LessThan(o.Decimal)
@@ -66,7 +66,7 @@ func (d NullDecimal) LessThan(o NullDecimal) bool {
 	return o.Valid
 }
 
-//LessThan NullDecimal同士を比較して小さいか確認します(NULLはZEROと判断します)
+// LessThan NullDecimal同士を比較して小さいか確認します(NULLはZEROと判断します)
 func (d NullDecimal) LessThanNZ(o NullDecimal) bool {
 	if d.Valid {
 		if o.Valid {
@@ -77,7 +77,7 @@ func (d NullDecimal) LessThanNZ(o NullDecimal) bool {
 	return o.Valid && Zero.LessThan(o.Decimal)
 }
 
-//Format fmt.Formatterインターフェイスの実装
+// Format fmt.Formatterインターフェイスの実装
 func (d NullDecimal) Format(s fmt.State, verb rune) {
 	switch verb {
 	case 'v':
@@ -96,7 +96,7 @@ func (d NullDecimal) Format(s fmt.State, verb rune) {
 	}
 }
 
-//GoString fmt.GoStringer interface
+// GoString fmt.GoStringer interface
 func (d NullDecimal) GoString() string {
 	if d.Valid {
 		if d.Equal(NullZero) {
@@ -121,7 +121,7 @@ func (d *NullDecimal) Scan(value interface{}) error {
 	return d.Decimal.Scan(value)
 }
 
-//MarshalLogObject implements of zapcore.ObjectMarshaler interface.
+// MarshalLogObject implements of zapcore.ObjectMarshaler interface.
 func (d NullDecimal) MarshalLogObject(enc zapcore.ObjectEncoder) error {
 	enc.AddString("decimal", d.Decimal.String())
 	enc.AddBool("valid", d.Valid)
@@ -205,8 +205,10 @@ func (d NullDecimal) Div(d2 interface{}) NullDecimal {
 
 // DivRound divides and rounds to a given precision
 // i.e. to an integer multiple of 10^(-precision)
-//   for a positive quotient digit 5 is rounded up, away from 0
-//   if the quotient is negative then digit 5 is rounded down, away from 0
+//
+//	for a positive quotient digit 5 is rounded up, away from 0
+//	if the quotient is negative then digit 5 is rounded down, away from 0
+//
 // Note that precision<0 is allowed as input.
 func (d NullDecimal) DivRound(d2 interface{}, precision int32) NullDecimal {
 	if !d.Valid {
@@ -269,9 +271,11 @@ func (d NullDecimal) Pow(d2 interface{}) NullDecimal {
 
 // QuoRem does divsion with remainder
 // d.QuoRem(d2,precision) returns quotient q and remainder r such that
-//   d = d2 * q + r, q an integer multiple of 10^(-precision)
-//   0 <= r < abs(d2) * 10 ^(-precision) if d>=0
-//   0 >= r > -abs(d2) * 10 ^(-precision) if d<0
+//
+//	d = d2 * q + r, q an integer multiple of 10^(-precision)
+//	0 <= r < abs(d2) * 10 ^(-precision) if d>=0
+//	0 >= r > -abs(d2) * 10 ^(-precision) if d<0
+//
 // Note that precision<0 is allowed as input.
 func (d NullDecimal) QuoRem(d2 interface{}, precision int32) (NullDecimal, NullDecimal) {
 	if d.Valid {
@@ -288,9 +292,8 @@ func (d NullDecimal) QuoRem(d2 interface{}, precision int32) (NullDecimal, NullD
 //
 // Example:
 //
-// 	   NewFromFloat(5.45).Round(1).String() // output: "5.5"
-// 	   NewFromFloat(545).Round(-1).String() // output: "550"
-//
+//	NewFromFloat(5.45).Round(1).String() // output: "5.5"
+//	NewFromFloat(545).Round(-1).String() // output: "550"
 func (d NullDecimal) Round(places int32) NullDecimal {
 	if !d.Valid {
 		return Null
@@ -306,13 +309,12 @@ func (d NullDecimal) Round(places int32) NullDecimal {
 //
 // Examples:
 //
-// 	   NewFromFloat(5.45).Round(1).String() // output: "5.4"
-// 	   NewFromFloat(545).Round(-1).String() // output: "540"
-// 	   NewFromFloat(5.46).Round(1).String() // output: "5.5"
-// 	   NewFromFloat(546).Round(-1).String() // output: "550"
-// 	   NewFromFloat(5.55).Round(1).String() // output: "5.6"
-// 	   NewFromFloat(555).Round(-1).String() // output: "560"
-//
+//	NewFromFloat(5.45).Round(1).String() // output: "5.4"
+//	NewFromFloat(545).Round(-1).String() // output: "540"
+//	NewFromFloat(5.46).Round(1).String() // output: "5.5"
+//	NewFromFloat(546).Round(-1).String() // output: "550"
+//	NewFromFloat(5.55).Round(1).String() // output: "5.6"
+//	NewFromFloat(555).Round(-1).String() // output: "560"
 func (d NullDecimal) RoundBank(places int32) NullDecimal {
 	if !d.Valid {
 		return Null
@@ -324,11 +326,13 @@ func (d NullDecimal) RoundBank(places int32) NullDecimal {
 // interval. The amount payable for a cash transaction is rounded to the nearest
 // multiple of the minimum currency unit available. The following intervals are
 // available: 5, 10, 25, 50 and 100; any other number throws a panic.
-//	    5:   5 cent rounding 3.43 => 3.45
-// 	   10:  10 cent rounding 3.45 => 3.50 (5 gets rounded up)
-// 	   25:  25 cent rounding 3.41 => 3.50
-// 	   50:  50 cent rounding 3.75 => 4.00
-// 	  100: 100 cent rounding 3.50 => 4.00
+//
+//	  5:   5 cent rounding 3.43 => 3.45
+//	 10:  10 cent rounding 3.45 => 3.50 (5 gets rounded up)
+//	 25:  25 cent rounding 3.41 => 3.50
+//	 50:  50 cent rounding 3.75 => 4.00
+//	100: 100 cent rounding 3.50 => 4.00
+//
 // For more details: https://en.wikipedia.org/wiki/Cash_rounding
 func (d NullDecimal) RoundCash(interval uint8) NullDecimal {
 	if !d.Valid {
@@ -381,8 +385,7 @@ func (d NullDecimal) Tan() NullDecimal {
 //
 // Example:
 //
-//     decimal.NewFromString("123.456").Truncate(2).String() // "123.45"
-//
+//	decimal.NewFromString("123.456").Truncate(2).String() // "123.45"
 func (d NullDecimal) Truncate(precision int32) NullDecimal {
 	if !d.Valid {
 		return Null
@@ -390,14 +393,53 @@ func (d NullDecimal) Truncate(precision int32) NullDecimal {
 	return d.Decimal.Truncate(precision).Nullable()
 }
 
-//NullInt64 convert to sql.NullInt64
+// NullInt64 convert to sql.NullInt64
 func (d NullDecimal) NullInt64() sql.NullInt64 {
 	return sql.NullInt64{Int64: d.Decimal.IntPart(), Valid: d.Valid}
 }
 
-//NullFloat64 convert to sql.NullFloat64
+// NullFloat64 convert to sql.NullFloat64
 func (d NullDecimal) NullFloat64() (f sql.NullFloat64) {
 	f.Float64, _ = d.Decimal.Float64()
 	f.Valid = d.Valid
 	return
+}
+
+// Cmp compares 2 values
+//
+//	-1 : d(nil) < d2(not nil)
+//	-1 : d < d2
+//	 0 : d(nil) == d2(nil)
+//	 0 : d == d2
+//	 1 : d(not nil) > d2(nil)
+//	 1 : d > d2
+func (d NullDecimal) Cmp(d2 NullDecimal) int {
+	if !d.Valid {
+		if d2.Valid {
+			return -1
+		}
+		return 0
+	}
+	if !d2.Valid {
+		return 1
+	}
+	return d.Decimal.Cmp(d2.Decimal)
+}
+
+// CmpNz compares 2 values (nil as zero)
+//
+//	-1 : d < d2
+//	 0 : d == d2
+//	 1 : d > d2
+func (d NullDecimal) CmpNz(d2 NullDecimal) int {
+	if !d.Valid {
+		if !d2.Valid {
+			return 0
+		}
+		return Zero.Cmp(d2.Decimal)
+	}
+	if !d2.Valid {
+		return d.Decimal.Cmp(Zero)
+	}
+	return d.Decimal.Cmp(d2.Decimal)
 }

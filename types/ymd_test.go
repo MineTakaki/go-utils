@@ -216,3 +216,22 @@ func TestFFormatYmd(t *testing.T) {
 		}
 	}
 }
+
+func TestYmdCompare(t *testing.T) {
+	for _, x := range []struct {
+		a, b Ymd
+		c    int
+	}{
+		{0, 0, 0},
+		{0, 1, -1},
+		{1, 0, 1},
+		{1, 1, 0},
+		{20220401, 20220401, 0},
+		{20220401, 20220402, -1},
+		{20220401, 20220331, 1},
+	} {
+		if cmp := x.a.Compare(x.b); x.c != cmp {
+			t.Errorf("expect(%d) != actual(%d)", x.c, cmp)
+		}
+	}
+}

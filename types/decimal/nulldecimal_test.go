@@ -109,3 +109,97 @@ func TestNullDecimal_EqualNZ(t *testing.T) {
 		)
 	}
 }
+
+func TestNullDecimal_Cmp(t *testing.T) {
+	for _, x := range []struct {
+		a, b NullDecimal
+		e    int
+	}{
+		{
+			a: NullDecimal{Decimal: NewFromInt(0), Valid: true},
+			b: NullDecimal{Decimal: NewFromInt(0), Valid: true},
+			e: 0,
+		},
+		{
+			a: NullDecimal{Decimal: NewFromInt(0), Valid: true},
+			b: NullDecimal{Decimal: NewFromInt(1), Valid: true},
+			e: -1,
+		},
+		{
+			a: NullDecimal{Decimal: NewFromInt(1), Valid: true},
+			b: NullDecimal{Decimal: NewFromInt(0), Valid: true},
+			e: 1,
+		},
+		{
+			a: NullDecimal{Decimal: NewFromInt(1), Valid: false},
+			b: NullDecimal{Decimal: NewFromInt(0), Valid: true},
+			e: -1,
+		},
+		{
+			a: NullDecimal{Decimal: NewFromInt(0), Valid: true},
+			b: NullDecimal{Decimal: NewFromInt(1), Valid: false},
+			e: 1,
+		},
+		{
+			a: NullDecimal{Decimal: NewFromInt(1), Valid: false},
+			b: NullDecimal{Decimal: NewFromInt(2), Valid: false},
+			e: 0,
+		},
+	} {
+		t.Run(
+			fmt.Sprintf("Cmp({%s,%v},{%s,%v})", x.a.Decimal.String(), x.a.Valid, x.b.Decimal.String(), x.b.Valid),
+			func(t *testing.T) {
+				if act := x.a.Cmp(x.b); x.e != act {
+					t.Errorf("exp(%v) != act(%v)", x.e, act)
+				}
+			},
+		)
+	}
+}
+
+func TestNullDecimal_CmpNZ(t *testing.T) {
+	for _, x := range []struct {
+		a, b NullDecimal
+		e    int
+	}{
+		{
+			a: NullDecimal{Decimal: NewFromInt(0), Valid: true},
+			b: NullDecimal{Decimal: NewFromInt(0), Valid: true},
+			e: 0,
+		},
+		{
+			a: NullDecimal{Decimal: NewFromInt(0), Valid: true},
+			b: NullDecimal{Decimal: NewFromInt(1), Valid: true},
+			e: -1,
+		},
+		{
+			a: NullDecimal{Decimal: NewFromInt(1), Valid: true},
+			b: NullDecimal{Decimal: NewFromInt(0), Valid: true},
+			e: 1,
+		},
+		{
+			a: NullDecimal{Decimal: NewFromInt(1), Valid: false},
+			b: NullDecimal{Decimal: NewFromInt(0), Valid: true},
+			e: 0,
+		},
+		{
+			a: NullDecimal{Decimal: NewFromInt(0), Valid: true},
+			b: NullDecimal{Decimal: NewFromInt(1), Valid: false},
+			e: 0,
+		},
+		{
+			a: NullDecimal{Decimal: NewFromInt(1), Valid: false},
+			b: NullDecimal{Decimal: NewFromInt(2), Valid: false},
+			e: 0,
+		},
+	} {
+		t.Run(
+			fmt.Sprintf("CmpNz({%s,%v},{%s,%v})", x.a.Decimal.String(), x.a.Valid, x.b.Decimal.String(), x.b.Valid),
+			func(t *testing.T) {
+				if act := x.a.CmpNz(x.b); x.e != act {
+					t.Errorf("exp(%v) != act(%v)", x.e, act)
+				}
+			},
+		)
+	}
+}

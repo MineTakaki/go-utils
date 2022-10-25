@@ -361,3 +361,14 @@ func (ymd Ymd) Days() int {
 	dm := (m*979 - 1033) >> 5     // 1月1日から m 月1日までの日数
 	return dy + dl + dm + d - 1
 }
+
+// Compare Ymd同志を比較します
+func (ymd Ymd) Compare(o Ymd) int {
+	if ymd < o {
+		return -1
+	}
+	if ymd > o {
+		return 1
+	}
+	return 0
+}

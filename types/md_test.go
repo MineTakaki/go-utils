@@ -92,3 +92,22 @@ func TestFFormatMd(t *testing.T) {
 		}
 	}
 }
+
+func TestMdCompare(t *testing.T) {
+	for _, x := range []struct {
+		a, b Md
+		c    int
+	}{
+		{0, 0, 0},
+		{0, 1, -1},
+		{1, 0, 1},
+		{1, 1, 0},
+		{0401, 0401, 0},
+		{0401, 0402, -1},
+		{0401, 0331, 1},
+	} {
+		if cmp := x.a.Compare(x.b); x.c != cmp {
+			t.Errorf("expect(%d) != actual(%d)", x.c, cmp)
+		}
+	}
+}

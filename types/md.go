@@ -274,3 +274,14 @@ func (md Md) Between(f, t Md) bool {
 	}
 	return f <= md && md >= t
 }
+
+// Compare Md同志を比較します
+func (md Md) Compare(o Md) int {
+	if md < o {
+		return -1
+	}
+	if md > o {
+		return 1
+	}
+	return 0
+}

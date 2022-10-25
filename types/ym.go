@@ -353,3 +353,14 @@ func (ym Ym) Max(o Ym) Ym {
 	}
 	return ym
 }
+
+// Compare Ym同志を比較します
+func (ym Ym) Compare(o Ym) int {
+	if ym < o {
+		return -1
+	}
+	if ym > o {
+		return 1
+	}
+	return 0
+}
