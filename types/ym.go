@@ -16,6 +16,9 @@ import (
 type (
 	//Ym yyyyMM形式で年月を表す整数型
 	Ym int
+
+	//YmSlice Ym型のスライス
+	YmSlice []Ym
 )
 
 // ErrValidate 値が適切でない
@@ -23,6 +26,10 @@ var ErrValidate = errors.New("validate error")
 
 // ErrUnkownType 知らない型が指定されました
 var ErrUnkownType = errors.New("unkown type")
+
+func (ym YmSlice) Len() int           { return len(ym) }
+func (ym YmSlice) Less(i, j int) bool { return ym[i] < ym[j] }
+func (ym YmSlice) Swap(i, j int)      { ym[i], ym[j] = ym[j], ym[i] }
 
 // ToYm 年月からYm型に変換します
 func ToYm(y, m int) (ym Ym, err error) {

@@ -15,7 +15,14 @@ import (
 type (
 	//Md MMdd形式で月日を表す整数型
 	Md int
+
+	//MdSlice Md型のスライス
+	MdSlice []Md
 )
+
+func (md MdSlice) Len() int           { return len(md) }
+func (md MdSlice) Less(i, j int) bool { return md[i] < md[j] }
+func (md MdSlice) Swap(i, j int)      { md[i], md[j] = md[j], md[i] }
 
 // ToMd 月日からMd型に変換します
 func ToMd(m, d int) (md Md, err error) {

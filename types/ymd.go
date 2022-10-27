@@ -16,7 +16,14 @@ import (
 type (
 	// Ymd yyyyMMdd形式で年月日を表す整数型
 	Ymd int
+
+	//YmdSlice Ymd型のスライス
+	YmdSlice []Ymd
 )
+
+func (ymd YmdSlice) Len() int           { return len(ymd) }
+func (ymd YmdSlice) Less(i, j int) bool { return ymd[i] < ymd[j] }
+func (ymd YmdSlice) Swap(i, j int)      { ymd[i], ymd[j] = ymd[j], ymd[i] }
 
 // ToYmd 年月日からYmd型に変換します
 func ToYmd(y, m, d int) (ymd Ymd, err error) {
