@@ -464,6 +464,9 @@ func (d *Decimal) UnmarshalJSON(decimalBytes []byte) error {
 	}
 
 	str := unquoteIfQuoted(decimalBytes)
+	if str == "" {
+		return nil
+	}
 
 	decimal, err := NewFromString(str)
 	*d = decimal
@@ -534,6 +537,9 @@ func NewFromBigInt(value *big.Int, exp int32) Decimal {
 //	d2, err := NewFromString(".0001")
 //	d3, err := NewFromString("1.47000")
 func NewFromString(value string) (Decimal, error) {
+	if value == "" {
+		return Zero, nil
+	}
 	d, err := decimal.NewFromString(value)
 	return Decimal{d}, err
 }
