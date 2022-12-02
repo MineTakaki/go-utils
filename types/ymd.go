@@ -379,3 +379,15 @@ func (ymd Ymd) Compare(o Ymd) int {
 	}
 	return 0
 }
+
+// TermYear 区切りを指定して年度を取得します
+func (ymd Ymd) TermYear(start Md) int {
+	if ymd == 0 {
+		return 0
+	}
+	y := ymd.Year()
+	if ymd.MonthDay() < start {
+		y--
+	}
+	return y
+}

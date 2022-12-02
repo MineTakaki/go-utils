@@ -371,3 +371,15 @@ func (ym Ym) Compare(o Ym) int {
 	}
 	return 0
 }
+
+// TermYear 区切りを指定して年度を取得します
+func (ym Ym) TermYear(start int) int {
+	if ym == 0 {
+		return 0
+	}
+	y := ym.Year()
+	if ym.Month() < start {
+		y--
+	}
+	return y
+}
