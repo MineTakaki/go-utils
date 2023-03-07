@@ -7,23 +7,31 @@ import (
 	"github.com/pkg/errors"
 )
 
-//Simple シンプルなテンプレート処理を行います
-func Simple(src string, i interface{}) (txt string, err error) {
-	var tpl *template.Template
-	tpl, err = template.New("tmp").Funcs(Join(CompareOperators(nil))).Parse(src)
+type (
+	FuncMap = template.FuncMap
+)
+
+// FuncMapを指定してテンプレート処理を行います
+func WithFuncs(src string, i interface{}, fmap FuncMap) (string, error) {
+	fmaptmp := Join(CompareOperators(nil))
+	for k, v := range fmap {
+		fmaptmp[k] = v
+	}
+
+	tpl, err := template.New("tmp").Funcs(fmaptmp).Parse(src)
 	if err != nil {
-		err = errors.WithStack(err)
-		return
+		return "", errors.WithStack(err)
 	}
 
 	buf := new(bytes.Buffer)
-
-	err = tpl.Execute(buf, i)
-	if err != nil {
-		err = errors.WithStack(err)
-		return
+	if err := tpl.Execute(buf, i); err != nil {
+		return "", errors.WithStack(err)
 	}
 
-	txt = buf.String()
-	return
+	return buf.String(), nil
+}
+
+// Simple シンプルなテンプレート処理を行います
+func Simple(src string, i interface{}) (string, error) {
+	return WithFuncs(src, i, nil)
 }
