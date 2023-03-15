@@ -43,6 +43,10 @@ func _toFloat64(v reflect.Value) (float64, bool) {
 		x, _ := v.Convert(nullInt64Type).Interface().(sql.NullInt64)
 		return float64(x.Int64), x.Valid
 	}
+	if v.Type().ConvertibleTo(nullInt32Type) {
+		x, _ := v.Convert(nullInt32Type).Interface().(sql.NullInt32)
+		return float64(x.Int32), x.Valid
+	}
 	if v.Type().ConvertibleTo(nullFloat64Type) {
 		x, _ := v.Convert(nullFloat64Type).Interface().(sql.NullFloat64)
 		return x.Float64, x.Valid
@@ -68,7 +72,7 @@ func _toFloat64(v reflect.Value) (float64, bool) {
 	return 0, false
 }
 
-//ScanFloat64 float64型に変換します
+// ScanFloat64 float64型に変換します
 func ScanFloat64(unk interface{}) (float64, error) {
 	switch i := unk.(type) {
 	case float64:
@@ -105,7 +109,7 @@ func ScanFloat64(unk interface{}) (float64, error) {
 	}
 }
 
-//Float64 float64型に変換します
+// Float64 float64型に変換します
 func Float64(i interface{}) (float64, bool) {
 	return _toFloat64(reflect.ValueOf(i))
 	/*
@@ -116,7 +120,7 @@ func Float64(i interface{}) (float64, bool) {
 	*/
 }
 
-//NullFloat64 sql.NullFloat64型に変換します
+// NullFloat64 sql.NullFloat64型に変換します
 func NullFloat64(i interface{}) (f sql.NullFloat64, ok bool) {
 	if IsEmpty(i) {
 		ok = true

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/MineTakaki/go-utils/internal/conv"
 	"go.uber.org/zap/zapcore"
 )
 
@@ -112,7 +113,7 @@ func (d NullDecimal) GoString() string {
 
 // Scan implements the sql.Scanner interface for database deserialization.
 func (d *NullDecimal) Scan(value interface{}) error {
-	if value == nil {
+	if conv.IsEmpty(value) {
 		d.Decimal = Zero
 		d.Valid = false
 		return nil

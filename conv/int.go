@@ -53,6 +53,13 @@ func _toInt64(v reflect.Value) (int64, bool) {
 		}
 		return 0, false
 	}
+	if v.Type().ConvertibleTo(nullInt32Type) {
+		x, _ := v.Convert(nullInt32Type).Interface().(sql.NullInt32)
+		if x.Valid {
+			return int64(x.Int32), true
+		}
+		return 0, false
+	}
 	if v.Type().ConvertibleTo(nullFloat64Type) {
 		x, _ := v.Convert(nullFloat64Type).Interface().(sql.NullFloat64)
 		if x.Valid {
@@ -81,12 +88,12 @@ func _toInt64(v reflect.Value) (int64, bool) {
 	return 0, false
 }
 
-//Int64 int64型へ変換します
+// Int64 int64型へ変換します
 func Int64(i interface{}) (int64, bool) {
 	return _toInt64(reflect.ValueOf(i))
 }
 
-//Int int型へ変換します
+// Int int型へ変換します
 func Int(i interface{}) (int, bool) {
 	n, ok := _toInt64(reflect.ValueOf(i))
 	if ok {

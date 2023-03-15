@@ -2,7 +2,6 @@ package conv
 
 import (
 	"database/sql"
-	"database/sql/driver"
 	"errors"
 	"math"
 	"reflect"
@@ -29,42 +28,31 @@ const (
 var (
 	errBadComparisonType = errors.New("invalid type for comparison")
 	errBadComparison     = errors.New("incompatible types for comparison")
-	errNoComparison      = errors.New("missing argument for comparison")
 )
 
-//IsEmpty nilまたは空文字かを判定します
+// IsEmpty nilまたは空文字かを判定します
 func IsEmpty(i interface{}) bool {
-	if i == nil {
-		return true
-	}
-
-	rv := UnwrapNullable(reflect.ValueOf(i))
-	if !rv.IsValid() {
-		return true
-	}
-
-	switch rv.Kind() {
-	case reflect.String, reflect.Array, reflect.Slice:
-		return rv.Len() == 0
-	}
-	return false
+	return conv.IsEmpty(i)
 }
 
 var stringType = reflect.TypeOf((*string)(nil)).Elem()
 var int64type = reflect.TypeOf((*int64)(nil)).Elem()
 var float64type = reflect.TypeOf((*float64)(nil)).Elem()
-var bytesType = reflect.TypeOf((*[]byte)(nil)).Elem()
+
+// var bytesType = reflect.TypeOf((*[]byte)(nil)).Elem()
 var nullStringType = reflect.TypeOf((*sql.NullString)(nil)).Elem()
 var nullInt64Type = reflect.TypeOf((*sql.NullInt64)(nil)).Elem()
 var nullInt32Type = reflect.TypeOf((*sql.NullInt32)(nil)).Elem()
 var nullFloat64Type = reflect.TypeOf((*sql.NullFloat64)(nil)).Elem()
 var decimalType = reflect.TypeOf((*decimal.Decimal)(nil)).Elem()
-var nullDecimalType = reflect.TypeOf((*decimal.NullDecimal)(nil)).Elem()
-var decimalType2 = reflect.TypeOf((*orgdec.Decimal)(nil)).Elem()
-var nullDecimalType2 = reflect.TypeOf((*orgdec.NullDecimal)(nil)).Elem()
-var sqlValuerType = reflect.TypeOf((*driver.Valuer)(nil)).Elem()
 
-//IsNil nilか判定します
+// var nullDecimalType = reflect.TypeOf((*decimal.NullDecimal)(nil)).Elem()
+var decimalType2 = reflect.TypeOf((*orgdec.Decimal)(nil)).Elem()
+
+// var nullDecimalType2 = reflect.TypeOf((*orgdec.NullDecimal)(nil)).Elem()
+// var sqlValuerType = reflect.TypeOf((*driver.Valuer)(nil)).Elem()
+
+// IsNil nilか判定します
 func IsNil(i interface{}) bool {
 	if i == nil {
 		return true
@@ -72,7 +60,7 @@ func IsNil(i interface{}) bool {
 	return !UnwrapNullable(reflect.ValueOf(i)).IsValid()
 }
 
-//UnwrapNullable sql.NullString等のNullableな型を考慮して値を取得します
+// UnwrapNullable sql.NullString等のNullableな型を考慮して値を取得します
 func UnwrapNullable(v reflect.Value) reflect.Value {
 	return conv.UnwrapNullable(v)
 }
@@ -147,7 +135,7 @@ func compareFloat(n1, n2 float64) int {
 	return 0
 }
 
-//CompareReflectValue reflect.Valueで同士で大小比較します
+// CompareReflectValue reflect.Valueで同士で大小比較します
 func CompareReflectValue(r1, r2 reflect.Value) (int, error) {
 	r1 = UnwrapNullable(r1)
 	r2 = UnwrapNullable(r2)
@@ -223,7 +211,7 @@ func CompareReflectValue(r1, r2 reflect.Value) (int, error) {
 	return 0, errBadComparison
 }
 
-//EqualReflectValue reflect.Valueで同士で同一比較します
+// EqualReflectValue reflect.Valueで同士で同一比較します
 func EqualReflectValue(r1, r2 reflect.Value) (bool, error) {
 	r1 = UnwrapNullable(r1)
 	r2 = UnwrapNullable(r2)
@@ -305,12 +293,12 @@ func EqualReflectValue(r1, r2 reflect.Value) (bool, error) {
 	return false, errBadComparison
 }
 
-//Compare a と b を比較して結果を返します
+// Compare a と b を比較して結果を返します
 func Compare(i1, i2 interface{}) (c int, err error) {
 	return CompareReflectValue(reflect.ValueOf(i1), reflect.ValueOf(i2))
 }
 
-//Less a < b の時に true を返します
+// Less a < b の時に true を返します
 func Less(a, b interface{}) (f bool, err error) {
 	var c int
 	c, err = Compare(a, b)
@@ -321,7 +309,7 @@ func Less(a, b interface{}) (f bool, err error) {
 	return
 }
 
-//Grater a > b の時に true を返します
+// Grater a > b の時に true を返します
 func Grater(a, b interface{}) (f bool, err error) {
 	var c int
 	c, err = Compare(a, b)
@@ -332,12 +320,12 @@ func Grater(a, b interface{}) (f bool, err error) {
 	return
 }
 
-//Equal i1 == i2 の時に true を返します
+// Equal i1 == i2 の時に true を返します
 func Equal(i1, i2 interface{}) (f bool, err error) {
 	return EqualReflectValue(reflect.ValueOf(i1), reflect.ValueOf(i2))
 }
 
-//convertMethod 指定した名前と戻り値の型で一致するメソッドを探して実行します。
+// convertMethod 指定した名前と戻り値の型で一致するメソッドを探して実行します。
 func convertMethod(v reflect.Value, name string, t reflect.Type) (reflect.Value, bool, bool) {
 	if m := v.MethodByName(name); !m.IsValid() {
 	} else if m.Type().NumIn() != 0 {
