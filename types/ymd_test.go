@@ -176,6 +176,9 @@ func TestYmdUnmarshalJson(t *testing.T) {
 		{"19980101", 19980101, true},
 		{"null", 0, true},
 		{"\"\"", 0, true},
+		{"\"2023-01-02\"", 20230102, true},
+		{"\"2023-1-2\"", 20230102, true},
+		{"99999999", 99999999, true},
 	} {
 		var ymd Ymd
 		if err := json.Unmarshal([]byte(x.src), &ymd); err != nil {

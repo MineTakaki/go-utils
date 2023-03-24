@@ -10,7 +10,7 @@ require (
 	github.com/stretchr/testify v1.8.2 // indirect
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/goleak v1.2.1 // indirect
-	go.uber.org/multierr v1.9.0 // indirect
+	go.uber.org/multierr v1.10.0 // indirect
 	go.uber.org/zap v1.24.0
 	golang.org/x/sys v0.6.0
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect

@@ -36,10 +36,14 @@ func ToYmd(y, m, d int) (ymd Ymd, err error) {
 
 // ParseYmd Ymd型に変換します
 func ParseYmd(i interface{}) (ymd Ymd, err error) {
-	err = ymd.Scan(i)
-	if err == nil {
-		_, err = ymd.Validate()
+	if err = ymd.Scan(i); err != nil {
+		return
 	}
+	// 9999年99月99日はNEXTで使用しているので例外的に許可する
+	if ymd == 99999999 {
+		return
+	}
+	_, err = ymd.Validate()
 	return
 }
 
@@ -143,7 +147,7 @@ func (ymd *Ymd) Scan(i interface{}) error {
 		return nil
 	}
 	if s, ok := i.(string); ok {
-		for _, layout := range []string{"2006-01-02", "2006/01/02"} {
+		for _, layout := range []string{"2006-01-02", "2006/01/02", "2006-1-2", "2006/1/2"} {
 			if tm, err := time.Parse(layout, s); err == nil {
 				*ymd = Ymd(tm.Year()*10000 + int(tm.Month())*100 + tm.Day())
 				return nil
