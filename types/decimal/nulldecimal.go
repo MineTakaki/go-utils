@@ -37,6 +37,29 @@ func (d NullDecimal) String() string {
 	return d.Decimal.String()
 }
 
+// Ptr Decimal型のポインタを返します。Valid=falseの時はnilを返します
+func (d NullDecimal) Ptr() *Decimal {
+	if !d.Valid {
+		return nil
+	}
+	x := d.Decimal
+	return &x
+}
+
+// FromPtr Decimal型のポインタから値をセットします
+func (d *NullDecimal) FromPtr(v *Decimal) *NullDecimal {
+	if d != nil {
+		if v == nil {
+			d.Valid = false
+			d.Decimal = Zero
+		} else {
+			d.Valid = true
+			d.Decimal = *v
+		}
+	}
+	return d
+}
+
 // Equal NullDecimal同士が同じか確認します
 func (d NullDecimal) Equal(o NullDecimal) bool {
 	if d.Valid {
