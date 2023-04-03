@@ -317,6 +317,8 @@ func ValidateYmd(y, m, d int) (bool, error) {
 	if y == 9999 { //ターミネータ的な使用目的だけ例外的にOKとする
 		if m == 12 && d == 31 {
 			return true, nil
+		} else if m == 99 && d == 99 {
+			return true, nil
 		}
 	} else if y >= 1998 && y <= 2999 && m >= 1 && m <= 12 && d >= 1 {
 		if lday := LastDay(y, m); d <= lday {
