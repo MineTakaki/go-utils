@@ -115,6 +115,13 @@ func (ym Ym) Part() (y, m int) {
 	return
 }
 
+// Parts 年月の要素を配列で取得します
+func (ym Ym) Parts() []int {
+	v := make([]int, 2)
+	v[0], v[1] = ym.Part()
+	return v
+}
+
 // Prev 一か月前の値を取得します
 func (ym Ym) Prev() Ym {
 	return ym.Add(0, -1)
@@ -259,73 +266,6 @@ func (ym *Ym) MarshalJSON() ([]byte, error) {
 func (ym *Ym) MarshalLogObject(enc zapcore.ObjectEncoder) error {
 	enc.AddString("ym", ym.String())
 	return nil
-}
-
-func _validateMD(m, d int) bool {
-	if m < 1 || m > 12 {
-		return false
-	} else if d < 1 || d > 31 {
-		return false
-	} else if m == 2 {
-		if d > 28 {
-			return false
-		}
-	} else if m == 4 || m == 6 || m == 9 || m == 11 {
-		if d > 30 {
-			return false
-		}
-	}
-	return true
-}
-
-// ValidateMd 月日の関連をチェックします（うるう年の考慮はできません）
-func ValidateMd(m, d int) (bool, error) {
-	if _validateMD(m, d) {
-		return true, nil
-	}
-	return false, errors.Wrapf(ErrValidate, "incorrect month/day value. m:%d, d:%d", m, d)
-}
-
-// ValidateYear 年が有効か確認します
-func ValidateYear(y int) (bool, error) {
-	if y >= 1998 && y <= 2999 {
-		return true, nil
-	}
-	return false, errors.Wrapf(ErrValidate, "%d is not correct as a year value", y)
-}
-
-// ValidateMonth 月が有効か確認します
-func ValidateMonth(m int) (ok bool, err error) {
-	if m < 1 || m > 12 {
-		return false, errors.Wrapf(ErrValidate, "%d is not correct as a month value", m)
-	}
-	return true, nil
-}
-
-// ValidateYm 年月が有効か確認します
-func ValidateYm(y, m int) (ok bool, err error) {
-	ok, err = ValidateYear(y)
-	if err != nil {
-		return
-	}
-	ok, err = ValidateMonth(m)
-	return
-}
-
-// ValidateYmd 年月日が有効か確認します
-func ValidateYmd(y, m, d int) (bool, error) {
-	if y == 9999 { //ターミネータ的な使用目的だけ例外的にOKとする
-		if m == 12 && d == 31 {
-			return true, nil
-		} else if m == 99 && d == 99 {
-			return true, nil
-		}
-	} else if y >= 1998 && y <= 2999 && m >= 1 && m <= 12 && d >= 1 {
-		if lday := LastDay(y, m); d <= lday {
-			return true, nil
-		}
-	}
-	return false, errors.Wrapf(ErrValidate, "incorrect date value. y:%d, m:%d, d:%d", y, m, d)
 }
 
 // CsvFormat CSV出力用のstring型変換

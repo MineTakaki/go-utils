@@ -125,13 +125,6 @@ func (md Md) Validate() (bool, error) {
 	return ValidateMd(m, d)
 }
 
-func abs(n int) int {
-	if n < 0 {
-		return -n
-	}
-	return n
-}
-
 // Month 月を取得します
 func (md Md) Month() int {
 	return int(md) / 100
@@ -147,6 +140,13 @@ func (md Md) Part() (m, d int) {
 	m = int(md) / 100
 	d = abs(int(md)) % 100
 	return
+}
+
+// Parts 月日の要素を配列で取得します
+func (md Md) Parts() []int {
+	v := make([]int, 2)
+	v[0], v[1] = md.Part()
+	return v
 }
 
 // Prev 前日の値を取得します（うるう年判定は行いません）

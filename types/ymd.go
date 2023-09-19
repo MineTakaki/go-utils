@@ -79,30 +79,6 @@ func (ymd Ymd) CsvFormat() string {
 	return strconv.Itoa(int(ymd))
 }
 
-func fillZero4(y int) string {
-	if y < 0 {
-		y = -y
-	}
-	if y < 10 {
-		return "000" + strconv.Itoa(y)
-	} else if y < 100 {
-		return "00" + strconv.Itoa(y)
-	} else if y < 1000 {
-		return "0" + strconv.Itoa(y)
-	}
-	return strconv.Itoa(y)
-}
-
-func fillZero2(n int) string {
-	if n < 0 {
-		n = -n
-	}
-	if n < 10 {
-		return "0" + strconv.Itoa(n)
-	}
-	return strconv.Itoa(n)
-}
-
 // FormatYmd YMD形式でstring型に整形して変換します
 func (ymd Ymd) FormatYmd(sep string, zeroSuppress bool) string {
 	if ymd == 0 {
@@ -207,6 +183,13 @@ func (ymd Ymd) Part() (y, m, d int) {
 	m = x % 100
 	y = x / 100
 	return
+}
+
+// Parts 年月日時分秒の要素を配列で取得します
+func (ymd Ymd) Parts() []int {
+	v := make([]int, 3)
+	v[0], v[1], v[2] = ymd.Part()
+	return v
 }
 
 // GoTime go言語のTime型に変換します
