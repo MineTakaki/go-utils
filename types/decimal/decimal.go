@@ -110,7 +110,7 @@ func (d *Decimal) Scan(value interface{}) error {
 		*d = x
 		return nil
 	}
-	return errors.WithStack(ErrScan)
+	return errors.Wrapf(ErrScan, "scan value error: %v", value)
 }
 
 // MarshalLogObject implements of zapcore.ObjectMarshaler interface.
