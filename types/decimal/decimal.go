@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"math/big"
+	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/shopspring/decimal"
@@ -540,7 +541,12 @@ func NewFromString(value string) (Decimal, error) {
 	if value == "" {
 		return Zero, nil
 	}
-	d, err := decimal.NewFromString(value)
+	d, err := decimal.NewFromString(strings.Map(func(r rune) rune {
+		if r == ',' {
+			return -1
+		}
+		return r
+	}, value))
 	return Decimal{d}, err
 }
 
