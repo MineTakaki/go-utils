@@ -9,7 +9,7 @@ import (
 type (
 	// Writer 非同期Writerインターフェイス
 	Writer interface {
-		io.Writer
+		io.WriteCloser
 
 		// Cancel 処理をキャンセルします
 		Cancel()
@@ -33,6 +33,8 @@ type (
 )
 
 // NewWriter 非同期書き込みを行うWriterを生成します
+//
+//	Close()を呼び出しても w で指定された io.Writer に対して Close() しません
 func NewWriter(ctx context.Context, w io.Writer) Writer {
 	aw := &asyncWriter{
 		w:         w,
