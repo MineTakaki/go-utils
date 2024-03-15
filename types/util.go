@@ -15,7 +15,7 @@ func ZeroPrefix(s string, width int) string {
 	default:
 		sb := strings.Builder{}
 		sb.Grow(6)
-		for i := width - len(s); i >= 0; i-- {
+		for i := width - len(s); i > 0; i-- {
 			sb.WriteByte('0')
 		}
 		sb.WriteString(s)
