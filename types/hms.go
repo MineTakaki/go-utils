@@ -145,7 +145,7 @@ func (hms Hms) Part() (h, m, s int) {
 	s = abs(int(hms)) % 100
 	n := int(hms) / 100
 	m = abs(n) % 100
-	h = n / 10000
+	h = n / 100
 	return
 }
 
