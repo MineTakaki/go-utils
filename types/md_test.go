@@ -1,8 +1,10 @@
-package types
+package types_test
 
 import (
 	"testing"
 	"time"
+
+	"github.com/MineTakaki/go-utils/types"
 )
 
 func TestAdjustMonth(t *testing.T) {
@@ -12,7 +14,7 @@ func TestAdjustMonth(t *testing.T) {
 			z = 1
 			y++
 		}
-		if dy, m := AdjustMonth(0, x); m != z || y != dy {
+		if dy, m := types.AdjustMonth(0, x); m != z || y != dy {
 			t.Errorf("%d => %d, %d: expect=%d, %d", x, m, dy, z, y)
 			return
 			//} else {
@@ -27,7 +29,7 @@ func TestAdjustMonth(t *testing.T) {
 			z = 12
 			y--
 		}
-		if dy, m := AdjustMonth(0, x); m != z || y != dy {
+		if dy, m := types.AdjustMonth(0, x); m != z || y != dy {
 			t.Errorf("%d => %d, %d: expect=%d, %d", x, m, dy, z, y)
 			return
 			//} else {
@@ -43,7 +45,7 @@ func TestAdjustMd(t *testing.T) {
 		for x := 1; x < 365; x++ {
 			tm := time.Date(2021, time.Month(m), 1, 0, 0, 0, 0, time.Local)
 			tm = tm.AddDate(0, 0, x-1)
-			if dm, d := AdjustMd(m, x); d != tm.Day() || dm != int(tm.Month()) {
+			if dm, d := types.AdjustMd(m, x); d != tm.Day() || dm != int(tm.Month()) {
 				t.Errorf("%d, %d => %d, %d: expect=%d, %d", m, x, d, dm, tm.Day(), tm.Month())
 				return
 				//} else {
@@ -57,7 +59,7 @@ func TestAdjustMd(t *testing.T) {
 		for x := 1; x >= -365; x-- {
 			tm := time.Date(2022, time.Month(m), 1, 0, 0, 0, 0, time.Local)
 			tm = tm.AddDate(0, 0, x-1)
-			if dm, d := AdjustMd(m, x); d != tm.Day() || dm != int(tm.Month()) {
+			if dm, d := types.AdjustMd(m, x); d != tm.Day() || dm != int(tm.Month()) {
 				t.Errorf("%d, %d => %d, %d: expect=%d, %d", m, x, d, dm, tm.Day(), tm.Month())
 				return
 				//} else {

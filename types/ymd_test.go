@@ -1,9 +1,11 @@
-package types
+package types_test
 
 import (
 	"encoding/json"
 	"testing"
 	"time"
+
+	"github.com/MineTakaki/go-utils/types"
 )
 
 func TestYmd(t *testing.T) {
@@ -153,7 +155,7 @@ func TestYmdAdd(t *testing.T) {
 }
 
 func TestDays(t *testing.T) {
-	now := YmdNow()
+	now := types.YmdNow()
 	n := 0
 	for ymd := Ymd(10101); ymd <= now; ymd = ymd.Next() {
 		if days := ymd.Days(); days != n {

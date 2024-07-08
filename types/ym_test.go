@@ -1,7 +1,15 @@
-package types
+package types_test
 
 import (
 	"testing"
+
+	"github.com/MineTakaki/go-utils/types"
+)
+
+type (
+	Ymd = types.Ymd
+	Ym  = types.Ym
+	Md  = types.Md
 )
 
 func TestYm(t *testing.T) {
@@ -123,7 +131,7 @@ func TestIsLeapYear(t *testing.T) {
 		{y: 2300, x: false},
 		{y: 2400, x: true},
 	} {
-		if a := IsLeapYear(x.y); x.x != a {
+		if a := types.IsLeapYear(x.y); x.x != a {
 			t.Errorf("year:%d, expect=%v, actual=%v", x.y, x.x, a)
 		}
 	}
