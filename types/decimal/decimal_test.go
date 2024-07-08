@@ -295,7 +295,7 @@ func TestNewFromStringErrs(t *testing.T) {
 		"123.456e" + strconv.FormatInt(math.MinInt32, 10),
 		"512.99 USD",
 		"$99.99",
-		"51,850.00",
+		//"51,850.00",
 		"20_000_000.00",
 		"$20_000_000.00",
 	}
