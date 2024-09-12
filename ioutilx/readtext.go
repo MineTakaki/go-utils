@@ -9,19 +9,19 @@ import (
 	"github.com/pkg/errors"
 )
 
-//ReadTextLines テキストを行単位に分割して取得します
+// ReadTextLines テキストを行単位に分割して取得します
 func ReadTextLines(rd io.Reader, noSkip bool, fn func(string) string) (lines []string, err error) {
 	r := bufio.NewReader(rd)
 	for {
 		var line string
 		line, err = r.ReadString('\n')
 		if err != nil {
-			if errors.Is(err, io.EOF) {
-				err = nil
-				break
+			if !errors.Is(err, io.EOF) {
+				err = errors.WithStack(err)
+				return
 			}
-			err = errors.WithStack(err)
-			return
+			err = nil
+			break
 		}
 
 		if fn != nil {
@@ -35,7 +35,7 @@ func ReadTextLines(rd io.Reader, noSkip bool, fn func(string) string) (lines []s
 	return
 }
 
-//ReadCSVTextLines CSVテキストから簡易的に全体を読み込みます
+// ReadCSVTextLines CSVテキストから簡易的に全体を読み込みます
 func ReadCSVTextLines(rd io.Reader, sep, comment rune) (lines [][]string, err error) {
 	r := csv.NewReader(rd)
 	r.Comma = sep
@@ -49,12 +49,12 @@ func ReadCSVTextLines(rd io.Reader, sep, comment rune) (lines [][]string, err er
 		var cols []string
 		cols, err = r.Read()
 		if err != nil {
-			if errors.Is(err, io.EOF) {
-				err = nil
-				break
+			if !errors.Is(err, io.EOF) {
+				err = errors.WithStack(err)
+				return
 			}
-			err = errors.WithStack(err)
-			return
+			err = nil
+			break
 		}
 
 		n := len(cols)

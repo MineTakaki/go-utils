@@ -4,7 +4,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/pkg/errors"
+	"github.com/MineTakaki/go-utils/errors"
 )
 
 // ZeroPrefix 指定文字列をwidthで指定した桁で0埋めしてstringに変換します

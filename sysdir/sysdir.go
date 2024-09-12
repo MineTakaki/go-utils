@@ -1,18 +1,18 @@
-// +build !windows
+//go:build !windows
 
 package sysdir
 
 import (
 	"os"
 
-	"github.com/pkg/errors"
+	"github.com/MineTakaki/go-utils/errors"
 )
 
-//Documents 既定のドキュメントフォルダーを取得します
+// Documents 既定のドキュメントフォルダーを取得します
 func Documents() (string, error) {
-	home, err := os.UserHomeDir()
+	home, err := errors.WithStack2(os.UserHomeDir())
 	if err != nil {
-		return "", errors.WithStack(err)
+		return "", err
 	}
 	return home + string(os.PathSeparator), err
 }

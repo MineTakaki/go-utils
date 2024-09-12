@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/pkg/errors"
+	"github.com/MineTakaki/go-utils/errors"
 )
 
 func _toFloat64(v reflect.Value) (float64, bool) {

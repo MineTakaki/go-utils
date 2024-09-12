@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"text/template"
 
-	"github.com/pkg/errors"
+	"github.com/MineTakaki/go-utils/errors"
 )
 
 type (
@@ -18,14 +18,14 @@ func WithFuncs(src string, i interface{}, fmap FuncMap) (string, error) {
 		fmaptmp[k] = v
 	}
 
-	tpl, err := template.New("tmp").Funcs(fmaptmp).Parse(src)
+	tpl, err := errors.WithStack2(template.New("tmp").Funcs(fmaptmp).Parse(src))
 	if err != nil {
-		return "", errors.WithStack(err)
+		return "", err
 	}
 
 	buf := new(bytes.Buffer)
-	if err := tpl.Execute(buf, i); err != nil {
-		return "", errors.WithStack(err)
+	if err := errors.WithStack(tpl.Execute(buf, i)); err != nil {
+		return "", err
 	}
 
 	return buf.String(), nil

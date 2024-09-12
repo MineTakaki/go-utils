@@ -3,10 +3,10 @@ package binutil
 import (
 	"io"
 
-	"github.com/pkg/errors"
+	"github.com/MineTakaki/go-utils/errors"
 )
 
-//PutInt31 intをutf8 like なエンコードで[]byteに書き出します
+// PutInt31 intをutf8 like なエンコードで[]byteに書き出します
 // マイナス値は対応しません
 func PutInt31(b []byte, d int) int {
 	if d < 0 {
@@ -30,7 +30,7 @@ func PutInt31(b []byte, d int) int {
 	return c + 1
 }
 
-//GetInt31 PutInt31()で書き出した[]byteからintを復元します
+// GetInt31 PutInt31()で書き出した[]byteからintを復元します
 func GetInt31(b []byte) (int, int, error) {
 	switch {
 	case len(b) == 0:
@@ -53,13 +53,12 @@ func GetInt31(b []byte) (int, int, error) {
 	case (b[4] & 0x40) == 0:
 		return int(b[0]&0x7f) + (int(b[1]&0x3f)+(int(b[2]&0x3f)+(int(b[3]&0x3f)+int(b[4]&0x3f)<<6)<<6)<<6)<<7, 5, nil //31
 	}
-	return 0, 0, errors.Errorf("decode error")
+	return 0, 0, errors.New("decode error")
 }
 
 func ReadInt31(r io.Reader) (d, n int, err error) {
 	b := make([]byte, 1)
-	if _, err = r.Read(b); err != nil {
-		err = errors.WithStack(err)
+	if _, err = errors.WithStack2(r.Read(b)); err != nil {
 		return
 	}
 	n++
@@ -68,62 +67,58 @@ func ReadInt31(r io.Reader) (d, n int, err error) {
 		return
 	}
 
-	if _, err = r.Read(b); err != nil {
-		err = errors.WithStack(err)
+	if _, err = errors.WithStack2(r.Read(b)); err != nil {
 		return
 	}
 	n++
 	d += int(b[0]&0x3f) << 7
 	if (b[0] & 0x80) == 0 {
-		err = errors.Errorf("decode error")
+		err = errors.New("decode error")
 		return
 	}
 	if (b[0] & 0x40) == 0 {
 		return
 	}
 
-	if _, err = r.Read(b); err != nil {
-		err = errors.WithStack(err)
+	if _, err = errors.WithStack2(r.Read(b)); err != nil {
 		return
 	}
 	n++
 	d += int(b[0]&0x3f) << 13
 	if (b[0] & 0x80) == 0 {
-		err = errors.Errorf("decode error")
+		err = errors.New("decode error")
 		return
 	}
 	if (b[0] & 0x40) == 0 {
 		return
 	}
 
-	if _, err = r.Read(b); err != nil {
-		err = errors.WithStack(err)
+	if _, err = errors.WithStack2(r.Read(b)); err != nil {
 		return
 	}
 	n++
 	d += int(b[0]&0x3f) << 19
 	if (b[0] & 0x80) == 0 {
-		err = errors.Errorf("decode error")
+		err = errors.New("decode error")
 		return
 	}
 	if (b[0] & 0x40) == 0 {
 		return
 	}
 
-	if _, err = r.Read(b); err != nil {
-		err = errors.WithStack(err)
+	if _, err = errors.WithStack2(r.Read(b)); err != nil {
 		return
 	}
 	n++
 	d += int(b[0]&0x3f) << 25
 	if (b[0] & 0x80) == 0 {
-		err = errors.Errorf("decode error")
+		err = errors.New("decode error")
 		return
 	}
 	if (b[0] & 0x40) == 0 {
 		return
 	}
 
-	err = errors.Errorf("decode error")
+	err = errors.New("decode error")
 	return
 }

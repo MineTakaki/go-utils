@@ -3,12 +3,13 @@ package decimal
 import (
 	"database/sql"
 	"database/sql/driver"
+	goerr "errors"
 	"fmt"
 	"io"
 	"math/big"
 	"strings"
 
-	"github.com/pkg/errors"
+	"github.com/MineTakaki/go-utils/errors"
 	"github.com/shopspring/decimal"
 	"go.uber.org/zap/zapcore"
 )
@@ -71,7 +72,7 @@ var Three = New(3, 0)
 var Ten = New(1, 1)
 
 // ErrScan Scan error
-var ErrScan = errors.New("scan value error")
+var ErrScan = goerr.New("scan value error")
 
 func (d DecimalSlice) Len() int           { return len(d) }
 func (d DecimalSlice) Less(i, j int) bool { return d[i].LessThan(d[j]) }

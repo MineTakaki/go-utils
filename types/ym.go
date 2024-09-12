@@ -3,13 +3,14 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
+	goerr "errors"
 	"fmt"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/MineTakaki/go-utils/conv"
-	"github.com/pkg/errors"
+	"github.com/MineTakaki/go-utils/errors"
 	"go.uber.org/zap/zapcore"
 )
 
@@ -22,10 +23,10 @@ type (
 )
 
 // ErrValidate 値が適切でない
-var ErrValidate = errors.New("validate error")
+var ErrValidate = goerr.New("validate error")
 
 // ErrUnkownType 知らない型が指定されました
-var ErrUnkownType = errors.New("unkown type")
+var ErrUnkownType = goerr.New("unkown type")
 
 func (ym YmSlice) Len() int           { return len(ym) }
 func (ym YmSlice) Less(i, j int) bool { return ym[i] < ym[j] }
@@ -245,8 +246,7 @@ func (ym Ym) Value() (driver.Value, error) {
 // UnmarshalJSON json.Unmarshalerインターフェイスの実装
 func (ym *Ym) UnmarshalJSON(b []byte) (err error) {
 	var s interface{}
-	if err = json.Unmarshal(b, &s); err != nil {
-		err = errors.WithStack(err)
+	if err = errors.WithStack(json.Unmarshal(b, &s)); err != nil {
 		return
 	}
 	var x Ym

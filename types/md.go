@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/MineTakaki/go-utils/conv"
-	"github.com/pkg/errors"
+	"github.com/MineTakaki/go-utils/errors"
 	"go.uber.org/zap/zapcore"
 )
 
@@ -92,8 +92,7 @@ func (md Md) Value() (driver.Value, error) {
 // UnmarshalJSON json.Unmarshalerインターフェイスの実装
 func (md *Md) UnmarshalJSON(b []byte) (err error) {
 	var s interface{}
-	if err = json.Unmarshal(b, &s); err != nil {
-		err = errors.WithStack(err)
+	if err = errors.WithStack(json.Unmarshal(b, &s)); err != nil {
 		return
 	}
 	var x Md

@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	"github.com/MineTakaki/go-utils"
-	"github.com/pkg/errors"
+	"github.com/MineTakaki/go-utils/errors"
 )
 
 type (
@@ -26,7 +26,7 @@ type (
 	}
 )
 
-//Close 指定して全ての Closer を呼び出します
+// Close 指定して全ての Closer を呼び出します
 // エラーが起きても最後まで実行し、最初のエラーを返します
 func Close(args ...io.Closer) (err error) {
 	for _, c := range args {
@@ -40,7 +40,7 @@ func Close(args ...io.Closer) (err error) {
 	return
 }
 
-//NewCloserHolder CloserHolderを生成します
+// NewCloserHolder CloserHolderを生成します
 func NewCloserHolder(args ...io.Closer) CloseHolder {
 	x := &closeHolder{}
 	for _, c := range args {
@@ -78,7 +78,7 @@ func (ch *closeHolder) Append(args ...io.Closer) {
 	ch.mutex.Unlock()
 }
 
-//CloseWithStack io.Closerのerrorにスタックトレースを追加します
+// CloseWithStack io.Closerのerrorにスタックトレースを追加します
 func CloseWithStack(c io.Closer) io.Closer {
 	if utils.IsNil(c) {
 		return nil

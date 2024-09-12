@@ -4,10 +4,10 @@ import (
 	"io"
 	"math"
 
-	"github.com/pkg/errors"
+	"github.com/MineTakaki/go-utils/errors"
 )
 
-//PutInt64 int64をutf8 like なエンコードで[]byteに書き出します
+// PutInt64 int64をutf8 like なエンコードで[]byteに書き出します
 // 最大11byteの領域が必要です
 func PutInt64(b []byte, d int64) int {
 	sign := false
@@ -44,10 +44,10 @@ func PutInt64(b []byte, d int64) int {
 	}
 }
 
-//GetInt64 PutInt64()で書き出した[]byteからint64を復元します
+// GetInt64 PutInt64()で書き出した[]byteからint64を復元します
 func GetInt64(b []byte) (d int64, n int, err error) {
 	if len(b) == 0 {
-		err = errors.Errorf("decode error(no data)")
+		err = errors.New("decode error(no data)")
 		return
 	}
 	n++
@@ -61,11 +61,11 @@ func GetInt64(b []byte) (d int64, n int, err error) {
 	}
 	for ; n < 11; n++ {
 		if len(b) <= n {
-			err = errors.Errorf("decode error(not enouph bytes)")
+			err = errors.New("decode error(not enouph bytes)")
 			return
 		}
 		if (b[n] & 0x80) == 0 {
-			err = errors.Errorf("decode error(data mark error)")
+			err = errors.New("decode error(data mark error)")
 			return
 		}
 		if (b[n] & 0x40) == 0 {
@@ -89,15 +89,14 @@ func GetInt64(b []byte) (d int64, n int, err error) {
 			return
 		}
 	}
-	err = errors.Errorf("decode error(end mark not found)")
+	err = errors.New("decode error(end mark not found)")
 	return
 }
 
-//ReadInt64 io.ReaderからPutInt64()で書き出したint64を読み取ります
+// ReadInt64 io.ReaderからPutInt64()で書き出したint64を読み取ります
 func ReadInt64(r io.Reader) (d int64, n int, err error) {
 	b := make([]byte, 11)
-	if _, err = r.Read(b[0:1]); err != nil {
-		err = errors.WithStack(err)
+	if _, err = errors.WithStack2(r.Read(b[0:1])); err != nil {
 		return
 	}
 	n++
@@ -110,12 +109,11 @@ func ReadInt64(r io.Reader) (d int64, n int, err error) {
 		return
 	}
 	for ; n < 11; n++ {
-		if _, err = r.Read(b[n : n+1]); err != nil {
-			err = errors.WithStack(err)
+		if _, err = errors.WithStack2(r.Read(b[n : n+1])); err != nil {
 			return
 		}
 		if (b[n] & 0x80) == 0 {
-			err = errors.Errorf("decode error(data mark error)")
+			err = errors.New("decode error(data mark error)")
 			return
 		}
 		if (b[n] & 0x40) == 0 {
@@ -139,6 +137,6 @@ func ReadInt64(r io.Reader) (d int64, n int, err error) {
 			return
 		}
 	}
-	err = errors.Errorf("decode error(end mark not found)")
+	err = errors.New("decode error(end mark not found)")
 	return
 }

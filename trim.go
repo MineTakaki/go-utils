@@ -5,10 +5,10 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/pkg/errors"
+	"github.com/MineTakaki/go-utils/errors"
 )
 
-//TrimFuncs string項目に対してTrimSpaceを実施します
+// TrimFuncs string項目に対してTrimSpaceを実施します
 func TrimFuncs(i interface{}, fn func(rune) bool) (err error) {
 	if i == nil || fn == nil {
 		return
@@ -61,7 +61,7 @@ func TrimFuncs(i interface{}, fn func(rune) bool) (err error) {
 	return
 }
 
-//TrimSpaces string項目に対してTrimSpaceを実施します
+// TrimSpaces string項目に対してTrimSpaceを実施します
 func TrimSpaces(i interface{}) error {
 	return TrimFuncs(i, unicode.IsSpace)
 }

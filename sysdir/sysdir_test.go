@@ -8,5 +8,9 @@ func TestDocuments(t *testing.T) {
 		t.Errorf("%+v", err)
 		return
 	}
+	if d == "" {
+		t.Error("Documents() return is empty")
+		return
+	}
 	t.Logf("Documents = %s", d)
 }

@@ -4,8 +4,8 @@ import (
 	"reflect"
 
 	"github.com/MineTakaki/go-utils/conv"
+	"github.com/MineTakaki/go-utils/errors"
 	"github.com/MineTakaki/go-utils/types"
-	"github.com/pkg/errors"
 )
 
 type (
@@ -26,7 +26,7 @@ type (
 	ScanFuncFactory func(typ reflect.Type, tag string, options []string) (ScanFunc, error)
 )
 
-//AsScannable Scannableインターフェイスを持っているか判定します
+// AsScannable Scannableインターフェイスを持っているか判定します
 func AsScannable(typ reflect.Type) bool {
 	if typ == nil {
 		return false
@@ -44,7 +44,7 @@ func _isScanMethod(t reflect.Type, f bool) bool {
 			(!f && t.NumIn() == 2 && t.In(0).Kind() == reflect.Ptr && t.In(1).Kind() == reflect.Interface))
 }
 
-//Scan ScannableインターフェイスのScanメソッドを実行します
+// Scan ScannableインターフェイスのScanメソッドを実行します
 func Scan(v reflect.Value, i interface{}) (err error) {
 	if conv.IsEmpty(i) {
 		return nil
