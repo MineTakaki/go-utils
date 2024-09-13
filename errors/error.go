@@ -30,23 +30,24 @@ func SetWrap(fn func(error, string) error) {
 }
 
 func New(text string) error {
-	fn := fnNew
-	if fn == nil {
-		return goerr.New(text)
+	if fn := fnNew; fn != nil {
+		return fn(text)
 	}
-	return fn(text)
+	return goerr.New(text)
 }
 
 func Errorf(format string, args ...interface{}) error {
 	text := fmt.Sprintf(format, args...)
-	fn := fnNew
-	if fn == nil {
-		return goerr.New(text)
+	if fn := fnNew; fn != nil {
+		return fn(text)
 	}
-	return fn(text)
+	return goerr.New(text)
 }
 
 func Wrap(err error, text string) error {
+	if err == nil {
+		return err
+	}
 	w := fnWrap
 	if w == nil {
 		return errors.Wrap(err, text)
@@ -55,6 +56,9 @@ func Wrap(err error, text string) error {
 }
 
 func Wrapf(err error, format string, args ...interface{}) error {
+	if err == nil {
+		return err
+	}
 	text := fmt.Sprintf(format, args...)
 	w := fnWrap
 	if w == nil {
@@ -64,6 +68,9 @@ func Wrapf(err error, format string, args ...interface{}) error {
 }
 
 func WithStack(err error) error {
+	if err == nil {
+		return err
+	}
 	w := fnWithStack
 	if w == nil {
 		return err
@@ -72,10 +79,16 @@ func WithStack(err error) error {
 }
 
 func WithStack2[T any](t T, err error) (T, error) {
+	if err == nil {
+		return t, err
+	}
 	return t, WithStack(err)
 }
 
 func WithStack3[T, U any](t T, u U, err error) (T, U, error) {
+	if err == nil {
+		return t, u, err
+	}
 	return t, u, WithStack(err)
 }
 
