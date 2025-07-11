@@ -1,4 +1,4 @@
-package scanner
+package scanner_test
 
 import (
 	"database/sql"
@@ -6,25 +6,26 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/shopspring/decimal"
+	"github.com/MineTakaki/go-utils/text/scanner"
+	"github.com/MineTakaki/go-utils/types/decimal"
 )
 
 func TestAsScannable(t *testing.T) {
 	str := sql.NullString{}
-	if !AsScannable(reflect.TypeOf(&str)) {
+	if !scanner.AsScannable(reflect.TypeOf(&str)) {
 		t.Error("sql.NullSring is scannable")
 	}
 
-	if !AsScannable(reflect.TypeOf(str)) {
+	if !scanner.AsScannable(reflect.TypeOf(str)) {
 		t.Error("sql.NullSring is scannable")
 	}
 
 	dec := decimal.Decimal{}
-	if !AsScannable(reflect.TypeOf(&dec)) {
+	if !scanner.AsScannable(reflect.TypeOf(&dec)) {
 		t.Error("decimal.Decimal is scannable")
 	}
 
-	if !AsScannable(reflect.TypeOf(dec)) {
+	if !scanner.AsScannable(reflect.TypeOf(dec)) {
 		t.Error("decimal.Decimal is scannable")
 	}
 
@@ -33,7 +34,7 @@ func TestAsScannable(t *testing.T) {
 func TestScan(t *testing.T) {
 	{
 		str := sql.NullString{}
-		if err := Scan(reflect.ValueOf(&str), "ABC"); err != nil {
+		if err := scanner.Scan(reflect.ValueOf(&str), "ABC"); err != nil {
 			t.Errorf("%+v", err)
 		} else if str.String != "ABC" {
 			t.Errorf("%+v", str)
@@ -46,7 +47,7 @@ func TestScan(t *testing.T) {
 	}
 	{
 		n := sql.NullInt64{}
-		if err := Scan(reflect.ValueOf(&n), "123"); err != nil {
+		if err := scanner.Scan(reflect.ValueOf(&n), "123"); err != nil {
 			t.Errorf("%+v", err)
 		} else if n.Int64 != 123 {
 			t.Errorf("%+v", n)
@@ -59,7 +60,7 @@ func TestScan(t *testing.T) {
 	}
 	{
 		n := sql.NullInt64{}
-		if err := Scan(reflect.ValueOf(&n), "0"); err != nil {
+		if err := scanner.Scan(reflect.ValueOf(&n), "0"); err != nil {
 			t.Errorf("%+v", err)
 		} else if n.Int64 != 0 {
 			t.Errorf("%+v", n)
@@ -72,7 +73,7 @@ func TestScan(t *testing.T) {
 	}
 	{
 		n := sql.NullFloat64{}
-		if err := Scan(reflect.ValueOf(&n), "123.456"); err != nil {
+		if err := scanner.Scan(reflect.ValueOf(&n), "123.456"); err != nil {
 			t.Errorf("%+v", err)
 		} else if n.Float64 != 123.456 {
 			t.Errorf("%+v", n)

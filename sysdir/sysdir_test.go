@@ -1,9 +1,13 @@
-package sysdir
+package sysdir_test
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/MineTakaki/go-utils/sysdir"
+)
 
 func TestDocuments(t *testing.T) {
-	d, err := Documents()
+	d, err := sysdir.Documents()
 	if err != nil {
 		t.Errorf("%+v", err)
 		return

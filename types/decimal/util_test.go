@@ -1,42 +1,44 @@
-package decimal
+package decimal_test
 
 import (
 	"database/sql"
 	"testing"
+
+	"github.com/MineTakaki/go-utils/types/decimal"
 )
 
 func TestValueOf(t *testing.T) {
-	if d, ok := ValueOf(Cent); !ok {
+	if d, ok := decimal.ValueOf(decimal.Cent); !ok {
 		t.Error("[Decimal] cannot convert error")
-	} else if !d.Equal(Cent) {
+	} else if !d.Equal(decimal.Cent) {
 		t.Errorf("[Decimal] value unmatch: %v", d)
 	}
-	if d, ok := ValueOf(100); !ok {
+	if d, ok := decimal.ValueOf(100); !ok {
 		t.Error("[int] cannot convert error")
-	} else if !d.Equal(Cent) {
-		t.Errorf("[int] value unmatch: %+v != %+v", d, Cent)
+	} else if !d.Equal(decimal.Cent) {
+		t.Errorf("[int] value unmatch: %+v != %+v", d, decimal.Cent)
 	}
-	if d, ok := ValueOf(Null); ok {
+	if d, ok := decimal.ValueOf(decimal.Null); ok {
 		t.Error("[NullDecimal] convert error")
 	} else if !d.IsZero() {
 		t.Errorf("[Null] value must be Zero: %v", d)
 	}
-	if d, ok := ValueOf(sql.NullFloat64{}); ok {
+	if d, ok := decimal.ValueOf(sql.NullFloat64{}); ok {
 		t.Error("[NullFloat64] convert error")
 	} else if !d.IsZero() {
 		t.Errorf("[Null] value must be Zero: %v", d)
 	}
-	if d, ok := ValueOf(sql.NullInt32{}); ok {
+	if d, ok := decimal.ValueOf(sql.NullInt32{}); ok {
 		t.Error("[NullInt32] convert error")
 	} else if !d.IsZero() {
 		t.Errorf("[Null] value must be Zero: %v", d)
 	}
-	if d, ok := ValueOf(sql.NullInt64{}); ok {
+	if d, ok := decimal.ValueOf(sql.NullInt64{}); ok {
 		t.Error("[NullInt64] convert error")
 	} else if !d.IsZero() {
 		t.Errorf("[Null] value must be Zero: %v", d)
 	}
-	if d, ok := ValueOf(sql.NullString{}); ok {
+	if d, ok := decimal.ValueOf(sql.NullString{}); ok {
 		t.Error("[NullString] convert error")
 	} else if !d.IsZero() {
 		t.Errorf("[Null] value must be Zero: %v", d)

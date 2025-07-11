@@ -217,7 +217,7 @@ func (d Decimal) Equal(d2 Decimal) bool {
 
 // Equals is deprecated, please use Equal method instead
 func (d Decimal) Equals(d2 Decimal) bool {
-	return d.Decimal.Equals(d2.Decimal)
+	return d.Decimal.Equal(d2.Decimal)
 }
 
 // GreaterThan (GT) returns true when d is greater than d2.

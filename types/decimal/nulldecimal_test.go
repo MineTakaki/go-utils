@@ -1,14 +1,16 @@
-package decimal
+package decimal_test
 
 import (
 	"encoding/json"
 	"fmt"
 	"testing"
+
+	"github.com/MineTakaki/go-utils/types/decimal"
 )
 
 func TestNullDecimlal_UnmarshallJson(t *testing.T) {
 	var doc struct {
-		Amount NullDecimal `json:"amount"`
+		Amount decimal.NullDecimal `json:"amount"`
 	}
 	for _, docStr := range []string{`{"amount": null}`, `{"amount": ""}`} {
 		err := json.Unmarshal([]byte(docStr), &doc)
@@ -22,32 +24,32 @@ func TestNullDecimlal_UnmarshallJson(t *testing.T) {
 
 func TestNullDecimal_Equal(t *testing.T) {
 	for _, x := range []struct {
-		a, b NullDecimal
+		a, b decimal.NullDecimal
 		e    bool
 	}{
 		{
-			a: NullDecimal{Decimal: NewFromInt(0), Valid: true},
-			b: NullDecimal{Decimal: NewFromInt(0), Valid: true},
+			a: decimal.NullDecimal{Decimal: decimal.NewFromInt(0), Valid: true},
+			b: decimal.NullDecimal{Decimal: decimal.NewFromInt(0), Valid: true},
 			e: true,
 		},
 		{
-			a: NullDecimal{Decimal: NewFromInt(0), Valid: true},
-			b: NullDecimal{Decimal: NewFromInt(1), Valid: true},
+			a: decimal.NullDecimal{Decimal: decimal.NewFromInt(0), Valid: true},
+			b: decimal.NullDecimal{Decimal: decimal.NewFromInt(1), Valid: true},
 			e: false,
 		},
 		{
-			a: NullDecimal{Decimal: NewFromInt(0), Valid: false},
-			b: NullDecimal{Decimal: NewFromInt(0), Valid: true},
+			a: decimal.NullDecimal{Decimal: decimal.NewFromInt(0), Valid: false},
+			b: decimal.NullDecimal{Decimal: decimal.NewFromInt(0), Valid: true},
 			e: false,
 		},
 		{
-			a: NullDecimal{Decimal: NewFromInt(0), Valid: true},
-			b: NullDecimal{Decimal: NewFromInt(0), Valid: false},
+			a: decimal.NullDecimal{Decimal: decimal.NewFromInt(0), Valid: true},
+			b: decimal.NullDecimal{Decimal: decimal.NewFromInt(0), Valid: false},
 			e: false,
 		},
 		{
-			a: NullDecimal{Decimal: NewFromInt(1), Valid: false},
-			b: NullDecimal{Decimal: NewFromInt(2), Valid: false},
+			a: decimal.NullDecimal{Decimal: decimal.NewFromInt(1), Valid: false},
+			b: decimal.NullDecimal{Decimal: decimal.NewFromInt(2), Valid: false},
 			e: true,
 		},
 	} {
@@ -67,32 +69,32 @@ func TestNullDecimal_Equal(t *testing.T) {
 
 func TestNullDecimal_EqualNZ(t *testing.T) {
 	for _, x := range []struct {
-		a, b NullDecimal
+		a, b decimal.NullDecimal
 		e    bool
 	}{
 		{
-			a: NullDecimal{Decimal: NewFromInt(0), Valid: true},
-			b: NullDecimal{Decimal: NewFromInt(0), Valid: true},
+			a: decimal.NullDecimal{Decimal: decimal.NewFromInt(0), Valid: true},
+			b: decimal.NullDecimal{Decimal: decimal.NewFromInt(0), Valid: true},
 			e: true,
 		},
 		{
-			a: NullDecimal{Decimal: NewFromInt(0), Valid: true},
-			b: NullDecimal{Decimal: NewFromInt(1), Valid: true},
+			a: decimal.NullDecimal{Decimal: decimal.NewFromInt(0), Valid: true},
+			b: decimal.NullDecimal{Decimal: decimal.NewFromInt(1), Valid: true},
 			e: false,
 		},
 		{
-			a: NullDecimal{Decimal: NewFromInt(1), Valid: false},
-			b: NullDecimal{Decimal: NewFromInt(0), Valid: true},
+			a: decimal.NullDecimal{Decimal: decimal.NewFromInt(1), Valid: false},
+			b: decimal.NullDecimal{Decimal: decimal.NewFromInt(0), Valid: true},
 			e: true,
 		},
 		{
-			a: NullDecimal{Decimal: NewFromInt(0), Valid: true},
-			b: NullDecimal{Decimal: NewFromInt(1), Valid: false},
+			a: decimal.NullDecimal{Decimal: decimal.NewFromInt(0), Valid: true},
+			b: decimal.NullDecimal{Decimal: decimal.NewFromInt(1), Valid: false},
 			e: true,
 		},
 		{
-			a: NullDecimal{Decimal: NewFromInt(1), Valid: false},
-			b: NullDecimal{Decimal: NewFromInt(2), Valid: false},
+			a: decimal.NullDecimal{Decimal: decimal.NewFromInt(1), Valid: false},
+			b: decimal.NullDecimal{Decimal: decimal.NewFromInt(2), Valid: false},
 			e: true,
 		},
 	} {
@@ -112,37 +114,37 @@ func TestNullDecimal_EqualNZ(t *testing.T) {
 
 func TestNullDecimal_Cmp(t *testing.T) {
 	for _, x := range []struct {
-		a, b NullDecimal
+		a, b decimal.NullDecimal
 		e    int
 	}{
 		{
-			a: NullDecimal{Decimal: NewFromInt(0), Valid: true},
-			b: NullDecimal{Decimal: NewFromInt(0), Valid: true},
+			a: decimal.NullDecimal{Decimal: decimal.NewFromInt(0), Valid: true},
+			b: decimal.NullDecimal{Decimal: decimal.NewFromInt(0), Valid: true},
 			e: 0,
 		},
 		{
-			a: NullDecimal{Decimal: NewFromInt(0), Valid: true},
-			b: NullDecimal{Decimal: NewFromInt(1), Valid: true},
+			a: decimal.NullDecimal{Decimal: decimal.NewFromInt(0), Valid: true},
+			b: decimal.NullDecimal{Decimal: decimal.NewFromInt(1), Valid: true},
 			e: -1,
 		},
 		{
-			a: NullDecimal{Decimal: NewFromInt(1), Valid: true},
-			b: NullDecimal{Decimal: NewFromInt(0), Valid: true},
+			a: decimal.NullDecimal{Decimal: decimal.NewFromInt(1), Valid: true},
+			b: decimal.NullDecimal{Decimal: decimal.NewFromInt(0), Valid: true},
 			e: 1,
 		},
 		{
-			a: NullDecimal{Decimal: NewFromInt(1), Valid: false},
-			b: NullDecimal{Decimal: NewFromInt(0), Valid: true},
+			a: decimal.NullDecimal{Decimal: decimal.NewFromInt(1), Valid: false},
+			b: decimal.NullDecimal{Decimal: decimal.NewFromInt(0), Valid: true},
 			e: -1,
 		},
 		{
-			a: NullDecimal{Decimal: NewFromInt(0), Valid: true},
-			b: NullDecimal{Decimal: NewFromInt(1), Valid: false},
+			a: decimal.NullDecimal{Decimal: decimal.NewFromInt(0), Valid: true},
+			b: decimal.NullDecimal{Decimal: decimal.NewFromInt(1), Valid: false},
 			e: 1,
 		},
 		{
-			a: NullDecimal{Decimal: NewFromInt(1), Valid: false},
-			b: NullDecimal{Decimal: NewFromInt(2), Valid: false},
+			a: decimal.NullDecimal{Decimal: decimal.NewFromInt(1), Valid: false},
+			b: decimal.NullDecimal{Decimal: decimal.NewFromInt(2), Valid: false},
 			e: 0,
 		},
 	} {
@@ -159,37 +161,37 @@ func TestNullDecimal_Cmp(t *testing.T) {
 
 func TestNullDecimal_CmpNZ(t *testing.T) {
 	for _, x := range []struct {
-		a, b NullDecimal
+		a, b decimal.NullDecimal
 		e    int
 	}{
 		{
-			a: NullDecimal{Decimal: NewFromInt(0), Valid: true},
-			b: NullDecimal{Decimal: NewFromInt(0), Valid: true},
+			a: decimal.NullDecimal{Decimal: decimal.NewFromInt(0), Valid: true},
+			b: decimal.NullDecimal{Decimal: decimal.NewFromInt(0), Valid: true},
 			e: 0,
 		},
 		{
-			a: NullDecimal{Decimal: NewFromInt(0), Valid: true},
-			b: NullDecimal{Decimal: NewFromInt(1), Valid: true},
+			a: decimal.NullDecimal{Decimal: decimal.NewFromInt(0), Valid: true},
+			b: decimal.NullDecimal{Decimal: decimal.NewFromInt(1), Valid: true},
 			e: -1,
 		},
 		{
-			a: NullDecimal{Decimal: NewFromInt(1), Valid: true},
-			b: NullDecimal{Decimal: NewFromInt(0), Valid: true},
+			a: decimal.NullDecimal{Decimal: decimal.NewFromInt(1), Valid: true},
+			b: decimal.NullDecimal{Decimal: decimal.NewFromInt(0), Valid: true},
 			e: 1,
 		},
 		{
-			a: NullDecimal{Decimal: NewFromInt(1), Valid: false},
-			b: NullDecimal{Decimal: NewFromInt(0), Valid: true},
+			a: decimal.NullDecimal{Decimal: decimal.NewFromInt(1), Valid: false},
+			b: decimal.NullDecimal{Decimal: decimal.NewFromInt(0), Valid: true},
 			e: 0,
 		},
 		{
-			a: NullDecimal{Decimal: NewFromInt(0), Valid: true},
-			b: NullDecimal{Decimal: NewFromInt(1), Valid: false},
+			a: decimal.NullDecimal{Decimal: decimal.NewFromInt(0), Valid: true},
+			b: decimal.NullDecimal{Decimal: decimal.NewFromInt(1), Valid: false},
 			e: 0,
 		},
 		{
-			a: NullDecimal{Decimal: NewFromInt(1), Valid: false},
-			b: NullDecimal{Decimal: NewFromInt(2), Valid: false},
+			a: decimal.NullDecimal{Decimal: decimal.NewFromInt(1), Valid: false},
+			b: decimal.NullDecimal{Decimal: decimal.NewFromInt(2), Valid: false},
 			e: 0,
 		},
 	} {

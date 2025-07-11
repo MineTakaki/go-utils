@@ -1,12 +1,16 @@
-package template
+package template_test
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/MineTakaki/go-utils/text/template"
+)
 
 func TestSimple(t *testing.T) {
 	m := map[string]interface{}{}
 	m["A"] = "A"
 
-	txt, err := Simple(test001tmplate, m)
+	txt, err := template.Simple(test001tmplate, m)
 	if err != nil {
 		t.Errorf("%+v", err)
 		return

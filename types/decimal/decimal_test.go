@@ -1,4 +1,4 @@
-package decimal
+package decimal_test
 
 import (
 	"database/sql/driver"
@@ -14,6 +14,8 @@ import (
 	"testing"
 	"testing/quick"
 	"time"
+
+	"github.com/MineTakaki/go-utils/types/decimal"
 )
 
 type testEnt struct {
@@ -105,17 +107,17 @@ func init() {
 }
 
 func TestFormat(t *testing.T) {
-	t.Logf("%+v", RequireFromString("123.5"))
-	t.Logf("%#v", RequireFromString("123.5"))
-	t.Logf("%#v", RequireFromString("123.5").Nullable())
-	t.Logf("%#v", Cent)
-	t.Logf("%#v", Null)
+	t.Logf("%+v", decimal.RequireFromString("123.5"))
+	t.Logf("%#v", decimal.RequireFromString("123.5"))
+	t.Logf("%#v", decimal.RequireFromString("123.5").Nullable())
+	t.Logf("%#v", decimal.Cent)
+	t.Logf("%#v", decimal.Null)
 }
 
 func TestNewFromFloat(t *testing.T) {
 	for _, x := range testTable {
 		s := x.short
-		d := NewFromFloat(x.float)
+		d := decimal.NewFromFloat(x.float)
 		if d.String() != s {
 			t.Errorf("expected %s, got %s (float: %v)", s, d.String(), x.float)
 		}
@@ -128,8 +130,8 @@ func TestNewFromFloat(t *testing.T) {
 	}
 
 	for _, n := range shouldPanicOn {
-		var d Decimal
-		if !didPanic(func() { d = NewFromFloat(n) }) {
+		var d decimal.Decimal
+		if !didPanic(func() { d = decimal.NewFromFloat(n) }) {
 			t.Fatalf("Expected panic when creating a Decimal from %v, got %v instead", n, d.String())
 		}
 	}
@@ -144,12 +146,12 @@ func TestNewFromFloatRandom(t *testing.T) {
 			break
 		}
 		in := (rng.Float64() - 0.5) * math.MaxFloat64 * 2
-		want, err := NewFromString(strconv.FormatFloat(in, 'f', -1, 64))
+		want, err := decimal.NewFromString(strconv.FormatFloat(in, 'f', -1, 64))
 		if err != nil {
 			t.Error(err)
 			continue
 		}
-		got := NewFromFloat(in)
+		got := decimal.NewFromFloat(in)
 		if !want.Equal(got) {
 			t.Errorf("in: %v, expected %s, got %s", in, want.String(), got.String())
 		}
@@ -158,11 +160,11 @@ func TestNewFromFloatRandom(t *testing.T) {
 
 func TestNewFromFloatQuick(t *testing.T) {
 	err := quick.Check(func(f float64) bool {
-		want, werr := NewFromString(strconv.FormatFloat(f, 'f', -1, 64))
+		want, werr := decimal.NewFromString(strconv.FormatFloat(f, 'f', -1, 64))
 		if werr != nil {
 			return true
 		}
-		got := NewFromFloat(f)
+		got := decimal.NewFromFloat(f)
 		return got.Equal(want)
 	}, &quick.Config{})
 	if err != nil {
@@ -179,12 +181,12 @@ func TestNewFromFloat32Random(t *testing.T) {
 			break
 		}
 		in := float32((rng.Float64() - 0.5) * math.MaxFloat32 * 2)
-		want, err := NewFromString(strconv.FormatFloat(float64(in), 'f', -1, 32))
+		want, err := decimal.NewFromString(strconv.FormatFloat(float64(in), 'f', -1, 32))
 		if err != nil {
 			t.Error(err)
 			continue
 		}
-		got := NewFromFloat32(in)
+		got := decimal.NewFromFloat32(in)
 		if !want.Equal(got) {
 			t.Errorf("in: %v, expected %s, got %s", in, want.String(), got.String())
 		}
@@ -193,11 +195,11 @@ func TestNewFromFloat32Random(t *testing.T) {
 
 func TestNewFromFloat32Quick(t *testing.T) {
 	err := quick.Check(func(f float32) bool {
-		want, werr := NewFromString(strconv.FormatFloat(float64(f), 'f', -1, 32))
+		want, werr := decimal.NewFromString(strconv.FormatFloat(float64(f), 'f', -1, 32))
 		if werr != nil {
 			return true
 		}
-		got := NewFromFloat32(f)
+		got := decimal.NewFromFloat32(f)
 		return got.Equal(want)
 	}, &quick.Config{})
 	if err != nil {
@@ -208,7 +210,7 @@ func TestNewFromFloat32Quick(t *testing.T) {
 func TestNewFromString(t *testing.T) {
 	for _, x := range testTable {
 		s := x.short
-		d, err := NewFromString(s)
+		d, err := decimal.NewFromString(s)
 		if err != nil {
 			t.Errorf("error while parsing %s", s)
 		} else if s == "" {
@@ -222,7 +224,7 @@ func TestNewFromString(t *testing.T) {
 
 	for _, x := range testTable {
 		s := x.exact
-		d, err := NewFromString(s)
+		d, err := decimal.NewFromString(s)
 		if err != nil {
 			t.Errorf("error while parsing %s", s)
 		} else if d.String() != s {
@@ -231,7 +233,7 @@ func TestNewFromString(t *testing.T) {
 	}
 
 	for e, s := range testTableScientificNotation {
-		d, err := NewFromString(e)
+		d, err := decimal.NewFromString(e)
 		if err != nil {
 			t.Errorf("error while parsing %s", e)
 		} else if d.String() != s {
@@ -246,14 +248,14 @@ func TestFloat64(t *testing.T) {
 			continue
 		}
 		s := x.exact
-		d, err := NewFromString(s)
+		d, err := decimal.NewFromString(s)
 		if err != nil {
 			t.Errorf("error while parsing %s", s)
 		} else if f, exact := d.Float64(); !exact || f != x.float {
 			t.Errorf("cannot represent exactly %s", s)
 		}
 		s = x.inexact
-		d, err = NewFromString(s)
+		d, err = decimal.NewFromString(s)
 		if err != nil {
 			t.Errorf("error while parsing %s", s)
 		} else if f, exact := d.Float64(); exact || f != x.float {
@@ -301,7 +303,7 @@ func TestNewFromStringErrs(t *testing.T) {
 	}
 
 	for _, s := range tests {
-		_, err := NewFromString(s)
+		_, err := decimal.NewFromString(s)
 
 		if err == nil {
 			t.Errorf("error expected when parsing %s", s)
@@ -324,8 +326,8 @@ func TestNewFromStringDeepEquals(t *testing.T) {
 	}
 
 	for _, cmp := range tests {
-		d1, err1 := NewFromString(cmp.str1)
-		d2, err2 := NewFromString(cmp.str2)
+		d1, err1 := decimal.NewFromString(cmp.str1)
+		d2, err2 := decimal.NewFromString(cmp.str2)
 
 		if err1 != nil || err2 != nil {
 			t.Errorf("error parsing strings to decimals")
@@ -347,7 +349,7 @@ func TestRequireFromString(t *testing.T) {
 		}
 	}()
 
-	d := RequireFromString(s)
+	d := decimal.RequireFromString(s)
 	if d.String() != s {
 		t.Errorf("expected %s, got %s", s, d.String())
 	}
@@ -355,15 +357,15 @@ func TestRequireFromString(t *testing.T) {
 
 func TestRequireFromStringErrs(t *testing.T) {
 	s := "qwert"
-	var d Decimal
+	var d decimal.Decimal
 	var err interface{}
 
-	func(d Decimal) {
+	func(d decimal.Decimal) {
 		defer func() {
 			err = recover()
 		}()
 
-		RequireFromString(s)
+		decimal.RequireFromString(s)
 	}(d)
 
 	if err == nil {
@@ -419,7 +421,7 @@ func TestNewFromFloatWithExponent(t *testing.T) {
 	}
 
 	for input, s := range tests {
-		d := NewFromFloatWithExponent(input.float, input.exp)
+		d := decimal.NewFromFloatWithExponent(input.float, input.exp)
 		if d.String() != s {
 			t.Errorf("expected %s, got %s", s, d.String())
 		}
@@ -432,8 +434,8 @@ func TestNewFromFloatWithExponent(t *testing.T) {
 	}
 
 	for _, n := range shouldPanicOn {
-		var d Decimal
-		if !didPanic(func() { d = NewFromFloatWithExponent(n, 0) }) {
+		var d decimal.Decimal
+		if !didPanic(func() { d = decimal.NewFromFloatWithExponent(n, 0) }) {
 			t.Fatalf("Expected panic when creating a Decimal from %v, got %v instead", n, d.String())
 		}
 	}
@@ -455,7 +457,7 @@ func TestNewFromInt(t *testing.T) {
 	}
 
 	for input, s := range tests {
-		d := NewFromInt(input)
+		d := decimal.NewFromInt(input)
 		if d.String() != s {
 			t.Errorf("expected %s, got %s", s, d.String())
 		}
@@ -478,7 +480,7 @@ func TestNewFromInt32(t *testing.T) {
 	}
 
 	for input, s := range tests {
-		d := NewFromInt32(input)
+		d := decimal.NewFromInt32(input)
 		if d.String() != s {
 			t.Errorf("expected %s, got %s", s, d.String())
 		}
@@ -510,7 +512,7 @@ func TestNewFromBigIntWithExponent(t *testing.T) {
 	}
 
 	for input, s := range tests {
-		d := NewFromBigInt(input.val, input.exp)
+		d := decimal.NewFromBigInt(input.val, input.exp)
 		if d.String() != s {
 			t.Errorf("expected %s, got %s", s, d.String())
 		}
@@ -521,7 +523,7 @@ func TestJSON(t *testing.T) {
 	for _, x := range testTable {
 		s := x.short
 		var doc struct {
-			Amount Decimal `json:"amount"`
+			Amount decimal.Decimal `json:"amount"`
 		}
 		docStr := `{"amount":"` + s + `"}`
 		docStrNumber := `{"amount":` + s + `}`
@@ -540,26 +542,26 @@ func TestJSON(t *testing.T) {
 		}
 
 		// make sure unquoted marshalling works too
-		MarshalJSONWithoutQuotes = true
+		decimal.MarshalJSONWithoutQuotes = true
 		out, err = json.Marshal(&doc)
 		if err != nil {
 			t.Errorf("error marshaling %+v: %v", doc, err)
 		} else if string(out) != docStrNumber {
 			t.Errorf("expected %s, got %s", docStrNumber, string(out))
 		}
-		MarshalJSONWithoutQuotes = false
+		decimal.MarshalJSONWithoutQuotes = false
 	}
 }
 
 func TestUnmarshalJSONNull(t *testing.T) {
 	var doc struct {
-		Amount Decimal `json:"amount"`
+		Amount decimal.Decimal `json:"amount"`
 	}
 	docStr := `{"amount": null}`
 	err := json.Unmarshal([]byte(docStr), &doc)
 	if err != nil {
 		t.Errorf("error unmarshaling %s: %v", docStr, err)
-	} else if !doc.Amount.Equal(Zero) {
+	} else if !doc.Amount.Equal(decimal.Zero) {
 		t.Errorf("expected Zero, got %s", doc.Amount.String())
 	}
 }
@@ -573,7 +575,7 @@ func TestBadJSON(t *testing.T) {
 		`0.333`,
 	} {
 		var doc struct {
-			Amount Decimal `json:"amount"`
+			Amount decimal.Decimal `json:"amount"`
 		}
 		err := json.Unmarshal([]byte(testCase), &doc)
 		if err == nil {
@@ -584,7 +586,7 @@ func TestBadJSON(t *testing.T) {
 
 func TestAAA(t *testing.T) {
 	var doc struct {
-		Amount Decimal `json:"amount"`
+		Amount decimal.Decimal `json:"amount"`
 	}
 	err := json.Unmarshal([]byte(`{"amount":""}`), &doc)
 	if err != nil {
@@ -596,7 +598,7 @@ func TestNullDecimalJSON(t *testing.T) {
 	for _, x := range testTable {
 		s := x.short
 		var doc struct {
-			Amount NullDecimal `json:"amount"`
+			Amount decimal.NullDecimal `json:"amount"`
 		}
 		docStr := `{"amount":"` + s + `"}`
 		docStrNumber := `{"amount":` + s + `}`
@@ -620,29 +622,29 @@ func TestNullDecimalJSON(t *testing.T) {
 		}
 
 		// make sure unquoted marshalling works too
-		MarshalJSONWithoutQuotes = true
+		decimal.MarshalJSONWithoutQuotes = true
 		out, err = json.Marshal(&doc)
 		if err != nil {
 			t.Errorf("error marshaling %+v: %v", doc, err)
 		} else if string(out) != docStrNumber {
 			t.Errorf("expected %s, got %s", docStrNumber, string(out))
 		}
-		MarshalJSONWithoutQuotes = false
+		decimal.MarshalJSONWithoutQuotes = false
 	}
 
 	var doc struct {
-		Amount NullDecimal `json:"amount"`
+		Amount decimal.NullDecimal `json:"amount"`
 	}
 
-	MarshalJSONWithoutQuotes = false
+	decimal.MarshalJSONWithoutQuotes = false
 	for _, x := range []struct {
 		src   string
-		exp   NullDecimal
+		exp   decimal.NullDecimal
 		json  string
 		json2 string
 	}{
-		{src: `{"amount":null}`, exp: Null, json: `{"amount":null}`, json2: `{"amount":null}`},
-		{src: `{"amount":""}`, exp: Null, json: `{"amount":null}`, json2: `{"amount":null}`},
+		{src: `{"amount":null}`, exp: decimal.Null, json: `{"amount":null}`, json2: `{"amount":null}`},
+		{src: `{"amount":""}`, exp: decimal.Null, json: `{"amount":null}`, json2: `{"amount":null}`},
 	} {
 		if err := json.Unmarshal([]byte(x.src), &doc); err != nil {
 			t.Errorf("error unmarshaling %s: %v", x.src, err)
@@ -661,7 +663,7 @@ func TestNullDecimalJSON(t *testing.T) {
 			continue
 		}
 
-		MarshalJSONWithoutQuotes = true
+		decimal.MarshalJSONWithoutQuotes = true
 		if out, err := json.Marshal(&doc); err != nil {
 			t.Errorf("error marshaling %+v: %v", doc, err)
 			continue
@@ -670,7 +672,7 @@ func TestNullDecimalJSON(t *testing.T) {
 			continue
 		}
 	}
-	MarshalJSONWithoutQuotes = false
+	decimal.MarshalJSONWithoutQuotes = false
 }
 
 func TestNullDecimalBadJSON(t *testing.T) {
@@ -683,7 +685,7 @@ func TestNullDecimalBadJSON(t *testing.T) {
 		`0.333`,
 	} {
 		var doc struct {
-			Amount NullDecimal `json:"amount"`
+			Amount decimal.NullDecimal `json:"amount"`
 		}
 		err := json.Unmarshal([]byte(testCase), &doc)
 		if err == nil {
@@ -696,8 +698,8 @@ func TestXML(t *testing.T) {
 	for _, x := range testTable {
 		s := x.short
 		var doc struct {
-			XMLName xml.Name `xml:"account"`
-			Amount  Decimal  `xml:"amount"`
+			XMLName xml.Name        `xml:"account"`
+			Amount  decimal.Decimal `xml:"amount"`
 		}
 		docStr := `<account><amount>` + s + `</amount></account>`
 		err := xml.Unmarshal([]byte(docStr), &doc)
@@ -727,8 +729,8 @@ func TestBadXML(t *testing.T) {
 		`0.333`,
 	} {
 		var doc struct {
-			XMLName xml.Name `xml:"account"`
-			Amount  Decimal  `xml:"amount"`
+			XMLName xml.Name        `xml:"account"`
+			Amount  decimal.Decimal `xml:"amount"`
 		}
 		err := xml.Unmarshal([]byte(testCase), &doc)
 		if err == nil {
@@ -738,7 +740,7 @@ func TestBadXML(t *testing.T) {
 }
 
 func TestDecimal_Floor(t *testing.T) {
-	assertFloor := func(input, expected Decimal) {
+	assertFloor := func(input, expected decimal.Decimal) {
 		got := input.Floor()
 		if !got.Equal(expected) {
 			t.Errorf("Floor(%s): got %s, expected %s", input, got, expected)
@@ -762,39 +764,39 @@ func TestDecimal_Floor(t *testing.T) {
 		{"-1.999", "-2"},
 	}
 	for _, test := range testsWithStrings {
-		expected, _ := NewFromString(test.expected)
-		input, _ := NewFromString(test.input)
+		expected, _ := decimal.NewFromString(test.expected)
+		input, _ := decimal.NewFromString(test.input)
 		assertFloor(input, expected)
 	}
 
 	type testDataDecimal struct {
-		input    Decimal
+		input    decimal.Decimal
 		expected string
 	}
 	testsWithDecimals := []testDataDecimal{
-		{New(100, -1), "10"},
-		{New(10, 0), "10"},
-		{New(1, 1), "10"},
-		{New(1999, -3), "1"},
-		{New(101, -2), "1"},
-		{New(1, 0), "1"},
-		{New(0, 0), "0"},
-		{New(9, -1), "0"},
-		{New(1, -1), "0"},
-		{New(-1, -1), "-1"},
-		{New(-9, -1), "-1"},
-		{New(-1, 0), "-1"},
-		{New(-101, -2), "-2"},
-		{New(-1999, -3), "-2"},
+		{decimal.New(100, -1), "10"},
+		{decimal.New(10, 0), "10"},
+		{decimal.New(1, 1), "10"},
+		{decimal.New(1999, -3), "1"},
+		{decimal.New(101, -2), "1"},
+		{decimal.New(1, 0), "1"},
+		{decimal.New(0, 0), "0"},
+		{decimal.New(9, -1), "0"},
+		{decimal.New(1, -1), "0"},
+		{decimal.New(-1, -1), "-1"},
+		{decimal.New(-9, -1), "-1"},
+		{decimal.New(-1, 0), "-1"},
+		{decimal.New(-101, -2), "-2"},
+		{decimal.New(-1999, -3), "-2"},
 	}
 	for _, test := range testsWithDecimals {
-		expected, _ := NewFromString(test.expected)
+		expected, _ := decimal.NewFromString(test.expected)
 		assertFloor(test.input, expected)
 	}
 }
 
 func TestDecimal_Ceil(t *testing.T) {
-	assertCeil := func(input, expected Decimal) {
+	assertCeil := func(input, expected decimal.Decimal) {
 		got := input.Ceil()
 		if !got.Equal(expected) {
 			t.Errorf("Ceil(%s): got %s, expected %s", input, got, expected)
@@ -818,33 +820,33 @@ func TestDecimal_Ceil(t *testing.T) {
 		{"-1.999", "-1"},
 	}
 	for _, test := range testsWithStrings {
-		expected, _ := NewFromString(test.expected)
-		input, _ := NewFromString(test.input)
+		expected, _ := decimal.NewFromString(test.expected)
+		input, _ := decimal.NewFromString(test.input)
 		assertCeil(input, expected)
 	}
 
 	type testDataDecimal struct {
-		input    Decimal
+		input    decimal.Decimal
 		expected string
 	}
 	testsWithDecimals := []testDataDecimal{
-		{New(100, -1), "10"},
-		{New(10, 0), "10"},
-		{New(1, 1), "10"},
-		{New(1999, -3), "2"},
-		{New(101, -2), "2"},
-		{New(1, 0), "1"},
-		{New(0, 0), "0"},
-		{New(9, -1), "1"},
-		{New(1, -1), "1"},
-		{New(-1, -1), "0"},
-		{New(-9, -1), "0"},
-		{New(-1, 0), "-1"},
-		{New(-101, -2), "-1"},
-		{New(-1999, -3), "-1"},
+		{decimal.New(100, -1), "10"},
+		{decimal.New(10, 0), "10"},
+		{decimal.New(1, 1), "10"},
+		{decimal.New(1999, -3), "2"},
+		{decimal.New(101, -2), "2"},
+		{decimal.New(1, 0), "1"},
+		{decimal.New(0, 0), "0"},
+		{decimal.New(9, -1), "1"},
+		{decimal.New(1, -1), "1"},
+		{decimal.New(-1, -1), "0"},
+		{decimal.New(-9, -1), "0"},
+		{decimal.New(-1, 0), "-1"},
+		{decimal.New(-101, -2), "-1"},
+		{decimal.New(-1999, -3), "-1"},
 	}
 	for _, test := range testsWithDecimals {
-		expected, _ := NewFromString(test.expected)
+		expected, _ := decimal.NewFromString(test.expected)
 		assertCeil(test.input, expected)
 	}
 }
@@ -900,13 +902,13 @@ func TestDecimal_RoundAndStringFixed(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		d, err := NewFromString(test.input)
+		d, err := decimal.NewFromString(test.input)
 		if err != nil {
 			panic(err)
 		}
 
 		// test Round
-		expected, err := NewFromString(test.expected)
+		expected, err := decimal.NewFromString(test.expected)
 		if err != nil {
 			panic(err)
 		}
@@ -984,13 +986,13 @@ func TestDecimal_BankRoundAndStringFixed(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		d, err := NewFromString(test.input)
+		d, err := decimal.NewFromString(test.input)
 		if err != nil {
 			panic(err)
 		}
 
 		// test Round
-		expected, err := NewFromString(test.expected)
+		expected, err := decimal.NewFromString(test.expected)
 		if err != nil {
 			panic(err)
 		}
@@ -1013,10 +1015,10 @@ func TestDecimal_BankRoundAndStringFixed(t *testing.T) {
 }
 
 func TestDecimal_Uninitialized(t *testing.T) {
-	a := Decimal{}
-	b := Decimal{}
+	a := decimal.Decimal{}
+	b := decimal.Decimal{}
 
-	decs := []Decimal{
+	decs := []decimal.Decimal{
 		a,
 		//a.rescale(10),
 		a.Abs(),
@@ -1024,7 +1026,7 @@ func TestDecimal_Uninitialized(t *testing.T) {
 		a.Sub(b),
 		a.Mul(b),
 		a.Shift(0),
-		a.Div(New(1, -1)),
+		a.Div(decimal.New(1, -1)),
 		a.Round(2),
 		a.Floor(),
 		a.Ceil(),
@@ -1080,11 +1082,11 @@ func TestDecimal_Add(t *testing.T) {
 	}
 
 	for inp, res := range inputs {
-		a, err := NewFromString(inp.a)
+		a, err := decimal.NewFromString(inp.a)
 		if err != nil {
 			t.FailNow()
 		}
-		b, err := NewFromString(inp.b)
+		b, err := decimal.NewFromString(inp.b)
 		if err != nil {
 			t.FailNow()
 		}
@@ -1115,11 +1117,11 @@ func TestDecimal_Sub(t *testing.T) {
 	}
 
 	for inp, res := range inputs {
-		a, err := NewFromString(inp.a)
+		a, err := decimal.NewFromString(inp.a)
 		if err != nil {
 			t.FailNow()
 		}
-		b, err := NewFromString(inp.b)
+		b, err := decimal.NewFromString(inp.b)
 		if err != nil {
 			t.FailNow()
 		}
@@ -1140,7 +1142,7 @@ func TestDecimal_Neg(t *testing.T) {
 	}
 
 	for inp, res := range inputs {
-		a, err := NewFromString(inp)
+		a, err := decimal.NewFromString(inp)
 		if err != nil {
 			t.FailNow()
 		}
@@ -1152,7 +1154,7 @@ func TestDecimal_Neg(t *testing.T) {
 }
 
 func TestDecimal_NegFromEmpty(t *testing.T) {
-	a := Decimal{}
+	a := decimal.Decimal{}
 	b := a.Neg()
 	if b.String() != "0" {
 		t.Errorf("expected %s, got %s", "0", b)
@@ -1174,11 +1176,11 @@ func TestDecimal_Mul(t *testing.T) {
 	}
 
 	for inp, res := range inputs {
-		a, err := NewFromString(inp.a)
+		a, err := decimal.NewFromString(inp.a)
 		if err != nil {
 			t.FailNow()
 		}
-		b, err := NewFromString(inp.b)
+		b, err := decimal.NewFromString(inp.b)
 		if err != nil {
 			t.FailNow()
 		}
@@ -1189,7 +1191,7 @@ func TestDecimal_Mul(t *testing.T) {
 	}
 
 	// positive scale
-	c := New(1234, 5).Mul(New(45, -1))
+	c := decimal.New(1234, 5).Mul(decimal.New(45, -1))
 	if c.String() != "555300000" {
 		t.Errorf("Expected %s, got %s", "555300000", c.String())
 	}
@@ -1212,10 +1214,10 @@ func TestDecimal_Shift(t *testing.T) {
 	}
 
 	for inp, expectedStr := range inputs {
-		num, _ := NewFromString(inp.a)
+		num, _ := decimal.NewFromString(inp.a)
 
 		got := num.Shift(inp.b)
-		expected, _ := NewFromString(expectedStr)
+		expected, _ := decimal.NewFromString(expectedStr)
 		if !got.Equal(expected) {
 			t.Errorf("expected %v when shifting %v by %v, got %v",
 				expected, num, inp.b, got)
@@ -1245,21 +1247,21 @@ func TestDecimal_Div(t *testing.T) {
 	}
 
 	for inp, expectedStr := range inputs {
-		num, err := NewFromString(inp.a)
+		num, err := decimal.NewFromString(inp.a)
 		if err != nil {
 			t.FailNow()
 		}
-		denom, err := NewFromString(inp.b)
+		denom, err := decimal.NewFromString(inp.b)
 		if err != nil {
 			t.FailNow()
 		}
 		got := num.Div(denom)
-		expected, _ := NewFromString(expectedStr)
+		expected, _ := decimal.NewFromString(expectedStr)
 		if !got.Equal(expected) {
 			t.Errorf("expected %v when dividing %v by %v, got %v",
 				expected, num, denom, got)
 		}
-		got2 := num.DivRound(denom, int32(DivisionPrecision))
+		got2 := num.DivRound(denom, int32(decimal.DivisionPrecision))
 		if !got2.Equal(expected) {
 			t.Errorf("expected %v on DivRound (%v,%v), got %v", expected, num, denom, got2)
 		}
@@ -1286,8 +1288,8 @@ func TestDecimal_Div(t *testing.T) {
 			for j := -1; j <= 1; j += 2 {
 				n := inp.n * int64(i)
 				n2 := inp.n2 * int64(j)
-				num := New(n, inp.exp)
-				denom := New(n2, inp.exp2)
+				num := decimal.New(n, inp.exp)
+				denom := decimal.New(n2, inp.exp2)
 				expected := expectedAbs
 				if i != j {
 					expected = "-" + expectedAbs
@@ -1327,12 +1329,12 @@ func TestDecimal_QuoRem(t *testing.T) {
 	}
 
 	for _, inp4 := range cases {
-		d, _ := NewFromString(inp4.d)
-		d2, _ := NewFromString(inp4.d2)
+		d, _ := decimal.NewFromString(inp4.d)
+		d2, _ := decimal.NewFromString(inp4.d2)
 		prec := inp4.exp
 		q, r := d.QuoRem(d2, prec)
-		expectedQ, _ := NewFromString(inp4.q)
-		expectedR, _ := NewFromString(inp4.r)
+		expectedQ, _ := decimal.NewFromString(inp4.q)
+		expectedR, _ := decimal.NewFromString(inp4.r)
 		if !q.Equal(expectedQ) || !r.Equal(expectedR) {
 			t.Errorf("bad QuoRem division %s , %s , %d got %v, %v expected %s , %s",
 				inp4.d, inp4.d2, prec, q, r, inp4.q, inp4.r)
@@ -1345,7 +1347,7 @@ func TestDecimal_QuoRem(t *testing.T) {
 			t.Errorf("quotient wrong precision: d=%v, d2= %v, prec=%d, q=%v, r=%v",
 				d, d2, prec, q, r)
 		}
-		if r.Abs().Cmp(d2.Abs().Mul(New(1, -prec))) >= 0 {
+		if r.Abs().Cmp(d2.Abs().Mul(decimal.New(1, -prec))) >= 0 {
 			t.Errorf("remainder too large: d=%v, d2= %v, prec=%d, q=%v, r=%v",
 				d, d2, prec, q, r)
 		}
@@ -1357,8 +1359,8 @@ func TestDecimal_QuoRem(t *testing.T) {
 }
 
 type DivTestCase struct {
-	d    Decimal
-	d2   Decimal
+	d    decimal.Decimal
+	d2   decimal.Decimal
 	prec int32
 }
 
@@ -1374,10 +1376,10 @@ func createDivTestCases() []DivTestCase {
 					for prec = -n; prec <= n; prec++ { // 2n+1
 						for _, v1 := range a { // 11
 							for _, v2 := range a { // 11, even if 0 is skipped
-								sign1 := New(int64(s), 0)
-								sign2 := New(int64(s2), 0)
-								d := sign1.Mul(New(int64(v1), e1))
-								d2 := sign2.Mul(New(int64(v2), e2))
+								sign1 := decimal.New(int64(s), 0)
+								sign2 := decimal.New(int64(s2), 0)
+								d := sign1.Mul(decimal.New(int64(v1), e1))
+								d2 := sign2.Mul(decimal.New(int64(v2), e2))
 								res = append(res, DivTestCase{d, d2, prec})
 							}
 						}
@@ -1392,7 +1394,7 @@ func createDivTestCases() []DivTestCase {
 func TestDecimal_QuoRem2(t *testing.T) {
 	for _, tc := range createDivTestCases() {
 		d := tc.d
-		if sign(tc.d2) == 0 {
+		if tc.d2.Sign() == 0 {
 			continue
 		}
 		d2 := tc.d2
@@ -1409,7 +1411,7 @@ func TestDecimal_QuoRem2(t *testing.T) {
 				d, d2, prec, q, r)
 		}
 		// rule 3: abs(r)<abs(d) * 10^(-prec)
-		if r.Abs().Cmp(d2.Abs().Mul(New(1, -prec))) >= 0 {
+		if r.Abs().Cmp(d2.Abs().Mul(decimal.New(1, -prec))) >= 0 {
 			t.Errorf("remainder too large, d=%v, d2=%v, prec=%d, q=%v, r=%v",
 				d, d2, prec, q, r)
 		}
@@ -1420,29 +1422,6 @@ func TestDecimal_QuoRem2(t *testing.T) {
 		//		d, d2, prec, q, r)
 		//}
 	}
-}
-
-// this is the old Div method from decimal
-// Div returns d / d2. If it doesn't divide exactly, the result will have
-// DivisionPrecision digits after the decimal point.
-func (d Decimal) DivOld(d2 Decimal, prec int) Decimal {
-	// NOTE(vadim): division is hard, use Rat to do it
-	ratNum := d.Rat()
-	ratDenom := d2.Rat()
-
-	quoRat := big.NewRat(0, 1).Quo(ratNum, ratDenom)
-
-	// HACK(vadim): converting from Rat to Decimal inefficiently for now
-	ret, err := NewFromString(quoRat.FloatString(prec))
-	if err != nil {
-		panic(err) // this should never happen
-	}
-	return ret
-}
-
-func sign(d Decimal) int {
-	return d.Sign()
-	//return d.value.Sign()
 }
 
 // rules for rounded divide, rounded to integer
@@ -1474,19 +1453,19 @@ func TestDecimal_DivRound(t *testing.T) {
 		{"1", "19.9999999999999999999", 1, "0.1"},
 	}
 	for _, s := range cases {
-		d, _ := NewFromString(s.d)
-		d2, _ := NewFromString(s.d2)
-		result, _ := NewFromString(s.result)
+		d, _ := decimal.NewFromString(s.d)
+		d2, _ := decimal.NewFromString(s.d2)
+		result, _ := decimal.NewFromString(s.result)
 		prec := s.prec
 		q := d.DivRound(d2, prec)
-		if sign(q)*sign(d)*sign(d2) < 0 {
+		if q.Sign()*d.Sign()*d2.Sign() < 0 {
 			t.Errorf("sign of quotient wrong, got: %v/%v is about %v", d, d2, q)
 		}
-		x := q.Mul(d2).Abs().Sub(d.Abs()).Mul(New(2, 0))
-		if x.Cmp(d2.Abs().Mul(New(1, -prec))) > 0 {
+		x := q.Mul(d2).Abs().Sub(d.Abs()).Mul(decimal.New(2, 0))
+		if x.Cmp(d2.Abs().Mul(decimal.New(1, -prec))) > 0 {
 			t.Errorf("wrong rounding, got: %v/%v prec=%d is about %v", d, d2, prec, q)
 		}
-		if x.Cmp(d2.Abs().Mul(New(-1, -prec))) <= 0 {
+		if x.Cmp(d2.Abs().Mul(decimal.New(-1, -prec))) <= 0 {
 			t.Errorf("wrong rounding, got: %v/%v prec=%d is about %v", d, d2, prec, q)
 		}
 		if !q.Equal(result) {
@@ -1498,20 +1477,20 @@ func TestDecimal_DivRound(t *testing.T) {
 func TestDecimal_DivRound2(t *testing.T) {
 	for _, tc := range createDivTestCases() {
 		d := tc.d
-		if sign(tc.d2) == 0 {
+		if tc.d2.Sign() == 0 {
 			continue
 		}
 		d2 := tc.d2
 		prec := tc.prec
 		q := d.DivRound(d2, prec)
-		if sign(q)*sign(d)*sign(d2) < 0 {
+		if q.Sign()*d.Sign()*d2.Sign() < 0 {
 			t.Errorf("sign of quotient wrong, got: %v/%v is about %v", d, d2, q)
 		}
-		x := q.Mul(d2).Abs().Sub(d.Abs()).Mul(New(2, 0))
-		if x.Cmp(d2.Abs().Mul(New(1, -prec))) > 0 {
+		x := q.Mul(d2).Abs().Sub(d.Abs()).Mul(decimal.New(2, 0))
+		if x.Cmp(d2.Abs().Mul(decimal.New(1, -prec))) > 0 {
 			t.Errorf("wrong rounding, got: %v/%v prec=%d is about %v", d, d2, prec, q)
 		}
-		if x.Cmp(d2.Abs().Mul(New(-1, -prec))) <= 0 {
+		if x.Cmp(d2.Abs().Mul(decimal.New(-1, -prec))) <= 0 {
 			t.Errorf("wrong rounding, got: %v/%v prec=%d is about %v", d, d2, prec, q)
 		}
 	}
@@ -1560,9 +1539,9 @@ func TestDecimal_RoundCash(t *testing.T) {
 		{"393", 100, "393"},
 	}
 	for i, test := range tests {
-		d, _ := NewFromString(test.d)
+		d, _ := decimal.NewFromString(test.d)
 		haveRounded := d.RoundCash(test.interval)
-		result, _ := NewFromString(test.result)
+		result, _ := decimal.NewFromString(test.result)
 
 		if !haveRounded.Equal(result) {
 			t.Errorf("Index %d: Cash rounding for %q interval %d want %q, have %q", i, test.d, test.interval, test.result, haveRounded)
@@ -1585,7 +1564,7 @@ func TestDecimal_RoundCash_Panic(t *testing.T) {
 			t.Error("Expecting a panic but got nothing")
 		}
 	}()
-	d, _ := NewFromString("1")
+	d, _ := decimal.NewFromString("1")
 	d.RoundCash(231)
 }
 
@@ -1607,11 +1586,11 @@ func TestDecimal_Mod(t *testing.T) {
 	}
 
 	for inp, res := range inputs {
-		a, err := NewFromString(inp.a)
+		a, err := decimal.NewFromString(inp.a)
 		if err != nil {
 			t.FailNow()
 		}
-		b, err := NewFromString(inp.b)
+		b, err := decimal.NewFromString(inp.b)
 		if err != nil {
 			t.FailNow()
 		}
@@ -1623,10 +1602,10 @@ func TestDecimal_Mod(t *testing.T) {
 }
 
 func TestDecimal_Overflow(t *testing.T) {
-	if !didPanic(func() { New(1, math.MinInt32).Mul(New(1, math.MinInt32)) }) {
+	if !didPanic(func() { decimal.New(1, math.MinInt32).Mul(decimal.New(1, math.MinInt32)) }) {
 		t.Fatalf("should have gotten an overflow panic")
 	}
-	if !didPanic(func() { New(1, math.MaxInt32).Mul(New(1, math.MaxInt32)) }) {
+	if !didPanic(func() { decimal.New(1, math.MaxInt32).Mul(decimal.New(1, math.MaxInt32)) }) {
 		t.Fatalf("should have gotten an overflow panic")
 	}
 }
@@ -1657,19 +1636,19 @@ func TestDecimal_ExtremeValues(t *testing.T) {
 	}
 
 	test(func() {
-		got := New(123, math.MinInt32).Floor()
-		if !got.Equal(NewFromFloat(0)) {
+		got := decimal.New(123, math.MinInt32).Floor()
+		if !got.Equal(decimal.NewFromFloat(0)) {
 			t.Errorf("Error: got %s, expected 0", got)
 		}
 	})
 	test(func() {
-		got := New(123, math.MinInt32).Ceil()
-		if !got.Equal(NewFromFloat(1)) {
+		got := decimal.New(123, math.MinInt32).Ceil()
+		if !got.Equal(decimal.NewFromFloat(1)) {
 			t.Errorf("Error: got %s, expected 1", got)
 		}
 	})
 	test(func() {
-		got := New(123, math.MinInt32).Rat().FloatString(10)
+		got := decimal.New(123, math.MinInt32).Rat().FloatString(10)
 		expected := "0.0000000000"
 		if got != expected {
 			t.Errorf("Error: got %s, expected %s", got, expected)
@@ -1687,7 +1666,7 @@ func TestIntPart(t *testing.T) {
 		{"9999.999", 9999},
 		{"-32768.01234", -32768},
 	} {
-		d, err := NewFromString(testCase.Dec)
+		d, err := decimal.NewFromString(testCase.Dec)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1712,7 +1691,7 @@ func TestBigInt(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		d, err := NewFromString(testCase.Dec)
+		d, err := decimal.NewFromString(testCase.Dec)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1740,7 +1719,7 @@ func TestBigFloat(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		d, err := NewFromString(testCase.Dec)
+		d, err := decimal.NewFromString(testCase.Dec)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1763,13 +1742,13 @@ func TestDecimal_Min(t *testing.T) {
 
 	for _, test := range testCases {
 		expected, input := test[0], test[1:]
-		expectedDecimal := NewFromFloat(expected)
-		decimalInput := []Decimal{}
+		expectedDecimal := decimal.NewFromFloat(expected)
+		decimalInput := []decimal.Decimal{}
 		for _, inp := range input {
-			d := NewFromFloat(inp)
+			d := decimal.NewFromFloat(inp)
 			decimalInput = append(decimalInput, d)
 		}
-		got := Min(decimalInput[0], decimalInput[1:]...)
+		got := decimal.Min(decimalInput[0], decimalInput[1:]...)
 		if !got.Equal(expectedDecimal) {
 			t.Errorf("Expected %v, got %v, input=%+v", expectedDecimal, got,
 				decimalInput)
@@ -1791,13 +1770,13 @@ func TestDecimal_Max(t *testing.T) {
 
 	for _, test := range testCases {
 		expected, input := test[0], test[1:]
-		expectedDecimal := NewFromFloat(expected)
-		decimalInput := []Decimal{}
+		expectedDecimal := decimal.NewFromFloat(expected)
+		decimalInput := []decimal.Decimal{}
 		for _, inp := range input {
-			d := NewFromFloat(inp)
+			d := decimal.NewFromFloat(inp)
 			decimalInput = append(decimalInput, d)
 		}
-		got := Max(decimalInput[0], decimalInput[1:]...)
+		got := decimal.Max(decimalInput[0], decimalInput[1:]...)
 		if !got.Equal(expectedDecimal) {
 			t.Errorf("Expected %v, got %v, input=%+v", expectedDecimal, got,
 				decimalInput)
@@ -1814,9 +1793,9 @@ func TestDecimal_Scan(t *testing.T) {
 
 	// in normal operations the db driver (sqlite at least)
 	// will return an int64 if you specified a numeric format
-	a := Decimal{}
+	a := decimal.Decimal{}
 	dbvalue := 54.33
-	expected := NewFromFloat(dbvalue)
+	expected := decimal.NewFromFloat(dbvalue)
 
 	err := a.Scan(dbvalue)
 	if err != nil {
@@ -1833,7 +1812,7 @@ func TestDecimal_Scan(t *testing.T) {
 	// apparently MySQL 5.7.16 and returns these as float32 so we need
 	// to handle these as well
 	dbvalueFloat32 := float32(54.33)
-	expected = NewFromFloat(float64(dbvalueFloat32))
+	expected = decimal.NewFromFloat(float64(dbvalueFloat32))
 
 	err = a.Scan(dbvalueFloat32)
 	if err != nil {
@@ -1850,7 +1829,7 @@ func TestDecimal_Scan(t *testing.T) {
 	// at least SQLite returns an int64 when 0 is stored in the db
 	// and you specified a numeric format on the schema
 	dbvalueInt := int64(0)
-	expected = New(dbvalueInt, 0)
+	expected = decimal.New(dbvalueInt, 0)
 
 	err = a.Scan(dbvalueInt)
 	if err != nil {
@@ -1868,7 +1847,7 @@ func TestDecimal_Scan(t *testing.T) {
 	// the database driver will return byte slice []byte
 	valueStr := "535.666"
 	dbvalueStr := []byte(valueStr)
-	expected, err = NewFromString(valueStr)
+	expected, err = decimal.NewFromString(valueStr)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1886,7 +1865,7 @@ func TestDecimal_Scan(t *testing.T) {
 	}
 
 	// lib/pq can also return strings
-	expected, err = NewFromString(valueStr)
+	expected, err = decimal.NewFromString(valueStr)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1911,13 +1890,13 @@ func TestDecimal_Scan(t *testing.T) {
 
 func TestDecimal_Value(t *testing.T) {
 	// Make sure this does implement the database/sql's driver.Valuer interface
-	var d Decimal
+	var d decimal.Decimal
 	if _, ok := interface{}(d).(driver.Valuer); !ok {
 		t.Error("Decimal does not implement driver.Valuer")
 	}
 
 	// check that normal case is handled appropriately
-	a := New(1234, -2)
+	a := decimal.New(1234, -2)
 	expected := "12.34"
 	value, err := a.Value()
 	if err != nil {
@@ -1930,15 +1909,15 @@ func TestDecimal_Value(t *testing.T) {
 // old tests after this line
 
 func TestDecimal_Scale(t *testing.T) {
-	a := New(1234, -3)
+	a := decimal.New(1234, -3)
 	if a.Exponent() != -3 {
 		t.Errorf("error")
 	}
 }
 
 func TestDecimal_Abs1(t *testing.T) {
-	a := New(-1234, -4)
-	b := New(1234, -4)
+	a := decimal.New(-1234, -4)
+	b := decimal.New(1234, -4)
 
 	c := a.Abs()
 	if c.Cmp(b) != 0 {
@@ -1947,8 +1926,8 @@ func TestDecimal_Abs1(t *testing.T) {
 }
 
 func TestDecimal_Abs2(t *testing.T) {
-	a := New(-1234, -4)
-	b := New(1234, -4)
+	a := decimal.New(-1234, -4)
+	b := decimal.New(1234, -4)
 
 	c := b.Abs()
 	if c.Cmp(a) == 0 {
@@ -1957,9 +1936,9 @@ func TestDecimal_Abs2(t *testing.T) {
 }
 
 func TestDecimal_Equalities(t *testing.T) {
-	a := New(1234, 3)
-	b := New(1234, 3)
-	c := New(1234, 4)
+	a := decimal.New(1234, 3)
+	b := decimal.New(1234, 3)
+	c := decimal.New(1234, 4)
 
 	if !a.Equal(b) {
 		t.Errorf("%q should equal %q", a, b)
@@ -2006,16 +1985,16 @@ func TestDecimal_Equalities(t *testing.T) {
 }
 
 func TestDecimal_ScalesNotEqual(t *testing.T) {
-	a := New(1234, 2)
-	b := New(1234, 3)
+	a := decimal.New(1234, 2)
+	b := decimal.New(1234, 3)
 	if a.Equal(b) {
 		t.Errorf("%q should not equal %q", a, b)
 	}
 }
 
 func TestDecimal_Cmp1(t *testing.T) {
-	a := New(123, 3)
-	b := New(-1234, 2)
+	a := decimal.New(123, 3)
+	b := decimal.New(-1234, 2)
 
 	if a.Cmp(b) != 1 {
 		t.Errorf("Error")
@@ -2023,8 +2002,8 @@ func TestDecimal_Cmp1(t *testing.T) {
 }
 
 func TestDecimal_Cmp2(t *testing.T) {
-	a := New(123, 3)
-	b := New(1234, 2)
+	a := decimal.New(123, 3)
+	b := decimal.New(1234, 2)
 
 	if a.Cmp(b) != -1 {
 		t.Errorf("Error")
@@ -2032,8 +2011,8 @@ func TestDecimal_Cmp2(t *testing.T) {
 }
 
 func TestPow(t *testing.T) {
-	a := New(4, 0)
-	b := New(2, 0)
+	a := decimal.New(4, 0)
+	b := decimal.New(2, 0)
 	x := a.Pow(b)
 	if x.String() != "16" {
 		t.Errorf("Error, saw %s", x.String())
@@ -2041,8 +2020,8 @@ func TestPow(t *testing.T) {
 }
 
 func TestNegativePow(t *testing.T) {
-	a := New(4, 0)
-	b := New(-2, 0)
+	a := decimal.New(4, 0)
+	b := decimal.New(-2, 0)
 	x := a.Pow(b)
 	if x.String() != "0.0625" {
 		t.Errorf("Error, saw %s", x.String())
@@ -2050,16 +2029,16 @@ func TestNegativePow(t *testing.T) {
 }
 
 func TestDecimal_Sign(t *testing.T) {
-	if Zero.Sign() != 0 {
-		t.Errorf("%q should have sign 0", Zero)
+	if decimal.Zero.Sign() != 0 {
+		t.Errorf("%q should have sign 0", decimal.Zero)
 	}
 
-	one := New(1, 0)
+	one := decimal.New(1, 0)
 	if one.Sign() != 1 {
 		t.Errorf("%q should have sign 1", one)
 	}
 
-	mone := New(-1, 0)
+	mone := decimal.New(-1, 0)
 	if mone.Sign() != -1 {
 		t.Errorf("%q should have sign -1", mone)
 	}
@@ -2085,7 +2064,7 @@ func didPanic(f func()) bool {
 }
 
 func TestDecimal_Coefficient(t *testing.T) {
-	d := New(123, 0)
+	d := decimal.New(123, 0)
 	co := d.Coefficient()
 	if co.Int64() != 123 {
 		t.Error("Coefficient should be 123; Got:", co)
@@ -2107,7 +2086,7 @@ func TestNullDecimal_Scan(t *testing.T) {
 	// will return an int64 if you specified a numeric format
 
 	// Make sure handles nil values
-	a := NullDecimal{}
+	a := decimal.NullDecimal{}
 	var dbvaluePtr interface{}
 	err := a.Scan(dbvaluePtr)
 	if err != nil {
@@ -2120,7 +2099,7 @@ func TestNullDecimal_Scan(t *testing.T) {
 	}
 
 	dbvalue := 54.33
-	expected := NewFromFloat(dbvalue)
+	expected := decimal.NewFromFloat(dbvalue)
 
 	err = a.Scan(dbvalue)
 	if err != nil {
@@ -2139,7 +2118,7 @@ func TestNullDecimal_Scan(t *testing.T) {
 	// at least SQLite returns an int64 when 0 is stored in the db
 	// and you specified a numeric format on the schema
 	dbvalueInt := int64(0)
-	expected = New(dbvalueInt, 0)
+	expected = decimal.New(dbvalueInt, 0)
 
 	err = a.Scan(dbvalueInt)
 	if err != nil {
@@ -2159,7 +2138,7 @@ func TestNullDecimal_Scan(t *testing.T) {
 	// the database driver will return byte slice []byte
 	valueStr := "535.666"
 	dbvalueStr := []byte(valueStr)
-	expected, err = NewFromString(valueStr)
+	expected, err = decimal.NewFromString(valueStr)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -2179,7 +2158,7 @@ func TestNullDecimal_Scan(t *testing.T) {
 	}
 
 	// lib/pq can also return strings
-	expected, err = NewFromString(valueStr)
+	expected, err = decimal.NewFromString(valueStr)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -2200,7 +2179,7 @@ func TestNullDecimal_Scan(t *testing.T) {
 
 func TestNullDecimal_Value(t *testing.T) {
 	// Make sure this does implement the database/sql's driver.Valuer interface
-	var nullDecimal NullDecimal
+	var nullDecimal decimal.NullDecimal
 	if _, ok := interface{}(nullDecimal).(driver.Valuer); !ok {
 		t.Error("NullDecimal does not implement driver.Valuer")
 	}
@@ -2214,7 +2193,7 @@ func TestNullDecimal_Value(t *testing.T) {
 	}
 
 	// check that normal case is handled appropriately
-	a := NullDecimal{Decimal: New(1234, -2), Valid: true}
+	a := decimal.NullDecimal{Decimal: decimal.New(1234, -2), Valid: true}
 	expected := "12.34"
 	value, err = a.Value()
 	if err != nil {
@@ -2229,7 +2208,7 @@ func TestBinary(t *testing.T) {
 		x := y.float
 
 		// Create the decimal
-		d1 := NewFromFloat(x)
+		d1 := decimal.NewFromFloat(x)
 
 		// Encode to binary
 		b, err := d1.MarshalBinary()
@@ -2238,7 +2217,7 @@ func TestBinary(t *testing.T) {
 		}
 
 		// Restore from binary
-		var d2 Decimal
+		var d2 decimal.Decimal
 		err = (&d2).UnmarshalBinary(b)
 		if err != nil {
 			t.Errorf("error unmarshalling from binary: %v", err)
@@ -2263,14 +2242,14 @@ func slicesEqual(a, b []byte) bool {
 func TestGobEncode(t *testing.T) {
 	for _, y := range testTable {
 		x := y.float
-		d1 := NewFromFloat(x)
+		d1 := decimal.NewFromFloat(x)
 
 		b1, err := d1.GobEncode()
 		if err != nil {
 			t.Errorf("error encoding %v to binary: %v", d1, err)
 		}
 
-		d2 := NewFromFloat(x)
+		d2 := decimal.NewFromFloat(x)
 
 		b2, err := d2.GobEncode()
 		if err != nil {
@@ -2281,12 +2260,12 @@ func TestGobEncode(t *testing.T) {
 			t.Errorf("something about the gobencode is not working properly \n%v\n%v", b1, b2)
 		}
 
-		var d3 Decimal
+		var d3 decimal.Decimal
 		err = d3.GobDecode(b1)
 		if err != nil {
 			t.Errorf("Error gobdecoding %v, got %v", b1, d3)
 		}
-		var d4 Decimal
+		var d4 decimal.Decimal
 		err = d4.GobDecode(b2)
 		if err != nil {
 			t.Errorf("Error gobdecoding %v, got %v", b2, d4)
@@ -2305,44 +2284,44 @@ func TestGobEncode(t *testing.T) {
 }
 
 func TestSum(t *testing.T) {
-	vals := make([]Decimal, 10)
+	vals := make([]decimal.Decimal, 10)
 	var i = int64(0)
 
 	for key := range vals {
-		vals[key] = New(i, 0)
+		vals[key] = decimal.New(i, 0)
 		i++
 	}
 
-	sum := Sum(vals[0], vals[1:]...)
-	if !sum.Equal(New(45, 0)) {
-		t.Errorf("Failed to calculate sum, expected %s got %s", New(45, 0), sum)
+	sum := decimal.Sum(vals[0], vals[1:]...)
+	if !sum.Equal(decimal.New(45, 0)) {
+		t.Errorf("Failed to calculate sum, expected %s got %s", decimal.New(45, 0), sum)
 	}
 }
 
 func TestAvg(t *testing.T) {
-	vals := make([]Decimal, 10)
+	vals := make([]decimal.Decimal, 10)
 	var i = int64(0)
 
 	for key := range vals {
-		vals[key] = New(i, 0)
+		vals[key] = decimal.New(i, 0)
 		i++
 	}
 
-	avg := Avg(vals[0], vals[1:]...)
-	if !avg.Equal(NewFromFloat(4.5)) {
-		t.Errorf("Failed to calculate average, expected %s got %s", NewFromFloat(4.5).String(), avg.String())
+	avg := decimal.Avg(vals[0], vals[1:]...)
+	if !avg.Equal(decimal.NewFromFloat(4.5)) {
+		t.Errorf("Failed to calculate average, expected %s got %s", decimal.NewFromFloat(4.5).String(), avg.String())
 	}
 }
 
 func TestRoundBankAnomaly(t *testing.T) {
-	a := New(25, -1)
-	b := New(250, -2)
+	a := decimal.New(25, -1)
+	b := decimal.New(250, -2)
 
 	if !a.Equal(b) {
 		t.Errorf("Expected %s to equal %s", a, b)
 	}
 
-	expected := New(2, 0)
+	expected := decimal.New(2, 0)
 
 	aRounded := a.RoundBank(0)
 	if !aRounded.Equal(expected) {
@@ -2382,11 +2361,11 @@ func TestAtan(t *testing.T) {
 		"1.57079623588597296123259450235374",
 	}
 	for i, inp := range inps {
-		d, err := NewFromString(inp)
+		d, err := decimal.NewFromString(inp)
 		if err != nil {
 			t.FailNow()
 		}
-		s, err := NewFromString(sols[i])
+		s, err := decimal.NewFromString(sols[i])
 		if err != nil {
 			t.FailNow()
 		}
@@ -2421,11 +2400,11 @@ func TestSin(t *testing.T) {
 		"-0.564291758480422881634770440632390475980828840253516895637281099241819037882007239070203007530085741820184955492382572029153491807930868879341091067301689987699567034024159005627332722089169680203292567574310010066799858914647295684974242359142300929248173166551428537696685165964880390889406578530338963341989826231514301546476672476399906348023294571001061677668735117509440368611093448917120819545826797975989350435900286332895885871219875665471968941335407351099209738417818747252638912592184093301853338763294381446907254104878969784040526201729163408095795934201105630182851806342356035203279670146684553491616847294749721014579109870396804713831114709372638323643327823671187472335866664108658093206409882794958673673978956925250261545083579947618620746006004554405785185537391110314728988164693223775249484198058394348289545771967707968288542718255197272633789792059019367104377340604030147471453833808674013259696102003732963091159662478879760121731138091114134586544668859915547568540172541576138084166990547345181184322550297604278946942918844039406876827936831612756344331500301118652183156052728447906384772901595431751550607818380262138322673253023464533931883787069611052589166000316238423939491520880451263927981787175602294299295744",
 	}
 	for i, inp := range inps {
-		d, err := NewFromString(inp)
+		d, err := decimal.NewFromString(inp)
 		if err != nil {
 			t.FailNow()
 		}
-		s, err := NewFromString(sols[i])
+		s, err := decimal.NewFromString(sols[i])
 		if err != nil {
 			t.FailNow()
 		}
@@ -2461,11 +2440,11 @@ func TestCos(t *testing.T) {
 		"-0.82557544253149396284458404188071504476091346830440347376462206521981928020803354950315062147200396866217255527509254080721982393941347365824137698491042935894213870423296625749297033966815252917361266452901192457318047750698424190124169875103436588397415032138037063155981648677895645409699825582226442363080800781881653440538927704569142007751338851079530521979429507520541625303794665680584709171813053216867014700596866196844144286737568957809383224972108999354839705480223052622003994027222120126949093911643497423100187973906980635670000034664323357488815820848035808846624518774608931622703631130673844138378087837990739103263093532314835289302930152150130664948083902949999427848344301686172490282395687167681679607401220592559832932068966455384902377056623736013617949634746332323529256184776892339963173795176200590119077305668901887229709592836744082027738666294887303249770621722032438202753270710379312736193201366287952361100525126056993039858894987153270630277483613793395809214871734783742285495171911648254647287555645360520115341268930844095156502348405343740866836850201634640011708462641462047870611041595707018966032206807675586825362640000739202116391403514629284000986232673698892843586989003952425039512325844566790376383098534975022847888104706525937115931692008959513984157709954859352131323440787667052399474107219968",
 	}
 	for i, inp := range inps {
-		d, err := NewFromString(inp)
+		d, err := decimal.NewFromString(inp)
 		if err != nil {
 			t.FailNow()
 		}
-		s, err := NewFromString(sols[i])
+		s, err := decimal.NewFromString(sols[i])
 		if err != nil {
 			t.FailNow()
 		}
@@ -2501,11 +2480,11 @@ func TestTan(t *testing.T) {
 		"0.68351325561491170753499935023939368502774607234006019034769919811202010905597996164029250820702097041244539696",
 	}
 	for i, inp := range inps {
-		d, err := NewFromString(inp)
+		d, err := decimal.NewFromString(inp)
 		if err != nil {
 			t.FailNow()
 		}
-		s, err := NewFromString(sols[i])
+		s, err := decimal.NewFromString(sols[i])
 		if err != nil {
 			t.FailNow()
 		}
@@ -2517,9 +2496,9 @@ func TestTan(t *testing.T) {
 }
 
 func ExampleNewFromFloat32() {
-	fmt.Println(NewFromFloat32(123.123123123123).String())
-	fmt.Println(NewFromFloat32(.123123123123123).String())
-	fmt.Println(NewFromFloat32(-1e13).String())
+	fmt.Println(decimal.NewFromFloat32(123.123123123123).String())
+	fmt.Println(decimal.NewFromFloat32(.123123123123123).String())
+	fmt.Println(decimal.NewFromFloat32(-1e13).String())
 	// OUTPUT:
 	//123.12312
 	//0.123123124
@@ -2527,9 +2506,9 @@ func ExampleNewFromFloat32() {
 }
 
 func ExampleNewFromFloat() {
-	fmt.Println(NewFromFloat(123.123123123123).String())
-	fmt.Println(NewFromFloat(.123123123123123).String())
-	fmt.Println(NewFromFloat(-1e13).String())
+	fmt.Println(decimal.NewFromFloat(123.123123123123).String())
+	fmt.Println(decimal.NewFromFloat(.123123123123123).String())
+	fmt.Println(decimal.NewFromFloat(-1e13).String())
 	// OUTPUT:
 	//123.123123123123
 	//0.123123123123123
