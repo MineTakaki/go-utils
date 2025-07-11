@@ -1,8 +1,11 @@
 package scanner
 
 import (
+	"encoding/csv"
 	goerr "errors"
+	"io"
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -15,6 +18,8 @@ type (
 		col  int
 		idx  int
 		req  bool
+		eod  bool
+		skip bool
 		scan ScanFunc
 	}
 
@@ -23,6 +28,8 @@ type (
 		tag    string
 		fact   ScanFuncFactory
 		fields []*fieldDefT
+		eod    bool
+		skip   bool
 	}
 )
 
@@ -37,6 +44,9 @@ var ErrTooShortFields = goerr.New("too short length of fields")
 
 // ErrScanData スキャンエラー（変換エラー）
 var ErrScanData = goerr.New("data scan error")
+
+// ErrSkipRow スキップデータ
+var ErrSkipRow = goerr.New("skip row data")
 
 func rawStuctType(typ reflect.Type) (reflect.Type, error) {
 	for typ.Kind() == reflect.Ptr {
@@ -126,15 +136,8 @@ func DefaultScanFunc(typ reflect.Type) (fn ScanFunc, err error) {
 	return
 }
 
-func parseTag(tag string) (name string, opt bool) {
-	if idx := strings.Index(tag, ","); idx != -1 {
-		return tag[:idx], strings.Contains(tag[idx+1:], "required")
-	}
-	return tag, false
-}
-
-func makeScanFields(typ reflect.Type, tagKey string, headers []string, fact ScanFuncFactory) ([]*fieldDefT, error) {
-	headerMap := map[string]int{}
+func makeScanFields(typ reflect.Type, tagKey string, headers []string, fact ScanFuncFactory) ([]*fieldDefT, bool, bool, error) {
+	headerMap := make(map[string]int, len(headers))
 	for i, h := range headers {
 		if _, ok := headerMap[h]; ok {
 			continue
@@ -142,47 +145,108 @@ func makeScanFields(typ reflect.Type, tagKey string, headers []string, fact Scan
 		headerMap[h] = i
 	}
 
-	scans := map[reflect.Type]ScanFunc{}
+	scans := make(map[reflect.Type]ScanFunc, len(headers))
 
-	var fields []*fieldDefT
+	fields := make([]*fieldDefT, 0, len(headers))
+
 	var err error
+	var eod_check, skip_check bool
 	for i, m := 0, typ.NumField(); i < m; i++ {
 		f := typ.Field(i)
 
 		//TAGを取得します
-		tag := f.Tag.Get(tagKey)
-		if tag == "" || tag == "-" {
+		t := struct {
+			name   string
+			req    bool
+			reqH   bool
+			regexp bool
+			eod    bool
+			skip   bool
+		}{}
+		if txt := f.Tag.Get(tagKey); txt == "" || txt == "-" {
 			continue
+		} else if !strings.Contains(txt, ",") {
+			t.name = txt
+		} else {
+			tagr := csv.NewReader(strings.NewReader(txt))
+			tagr.FieldsPerRecord = -1
+			tagr.LazyQuotes = true
+			recs, err := errors.WithStack2(tagr.ReadAll())
+			if err != nil {
+				return nil, false, false, err
+			}
+			for i := range recs {
+				for j := range recs[i] {
+					if i == 0 && j == 0 {
+						t.name = recs[i][j]
+					} else {
+						switch recs[i][j] {
+						case "required", "req":
+							t.req = true
+						case "required_h", "req_h":
+							t.reqH = true
+						case "regexp":
+							t.regexp = true
+						case "eod":
+							t.eod = true
+						case "skip":
+							t.skip = true
+						}
+					}
+				}
+			}
 		}
-		name, req := parseTag(tag)
+
+		var name string
+		if t.regexp {
+			rg, err := errors.WithStack2(regexp.CompilePOSIX(t.name))
+			if err != nil {
+				return nil, false, false, err
+			}
+			for hname := range headerMap {
+				if rg.MatchString(hname) {
+					name = hname
+					break
+				}
+			}
+		} else {
+			name = t.name
+		}
 
 		var fdef *fieldDefT
-		col, ok := headerMap[name]
-		if ok {
+		if name == "" {
+		} else if col, ok := headerMap[name]; !ok {
+		} else {
 			scan := scans[f.Type]
 			if scan == nil {
 				if fact != nil {
 					if scan, err = fact(f.Type, name, nil); err != nil {
-						return nil, err
+						return nil, false, false, err
 					}
 				}
 				if scan == nil {
 					if scan, err = DefaultScanFunc(f.Type); err != nil {
-						return nil, err
+						return nil, false, false, err
 					}
 				}
 			}
 			if scan != nil {
-				fdef = &fieldDefT{name: name, col: col, idx: i, req: req, scan: scan}
+				fdef = &fieldDefT{name: name, col: col, idx: i, req: t.req, eod: t.eod, skip: t.skip, scan: scan}
+				if t.eod {
+					eod_check = true
+				}
+				if t.skip {
+					skip_check = true
+				}
 			}
 		}
 		if fdef != nil {
 			fields = append(fields, fdef)
-		} else if req {
-			return nil, errors.Wrapf(ErrNotFoundField, "field('%s') not found", name)
+		} else if t.req || t.reqH {
+			return nil, false, false, errors.Wrapf(ErrNotFoundField, "field('%s') not found", name)
 		}
 	}
-	return fields, nil
+	return fields, eod_check, skip_check, nil
 }
 
 // WithHeader ヘッダーを指定してスキャナーを生成します
@@ -197,7 +261,7 @@ func WithHeader(i interface{}, tag string, headers []string, fact ScanFuncFactor
 	x := header{typ: typ, tag: tag}
 
 	if headers != nil {
-		if x.fields, err = makeScanFields(typ, tag, headers, fact); err != nil {
+		if x.fields, x.eod, x.skip, err = makeScanFields(typ, tag, headers, fact); err != nil {
 			return nil, err
 		}
 	} else {
@@ -210,7 +274,7 @@ func WithHeader(i interface{}, tag string, headers []string, fact ScanFuncFactor
 func (s *header) Scan(i interface{}, cols []string) (err error) {
 	//ヘッダーが読み込まれていいなかった場合は1行目をヘッダーとして処理します
 	if s.fields == nil {
-		s.fields, err = makeScanFields(s.typ, s.tag, cols, s.fact)
+		s.fields, s.eod, s.skip, err = makeScanFields(s.typ, s.tag, cols, s.fact)
 		return
 	}
 
@@ -223,18 +287,36 @@ func (s *header) Scan(i interface{}, cols []string) (err error) {
 	}
 
 	n := len(cols)
+	var noEOD, noSkip bool
+	var lastErr error
 	for _, f := range s.fields {
 		//カラム数が足りない場合
 		if n <= f.col {
-			if f.req {
-				return errors.Wrapf(ErrTooShortFields, "have no field data of '%s', column=%d ", f.name, f.col)
+			if f.req && lastErr == nil {
+				lastErr = errors.Wrapf(ErrTooShortFields, "have no field data of '%s', column=%d ", f.name, f.col)
 			}
 			continue
 		}
-		err = f.scan(v.Field(f.idx), cols[f.col])
-		if err != nil {
+		s := strings.TrimSpace(cols[f.col])
+		if s != "" {
+			if f.eod {
+				noEOD = true
+			}
+			if f.skip {
+				noSkip = true
+			}
+		} else if f.req && lastErr == nil {
+			lastErr = errors.Wrapf(ErrTooShortFields, "have no field data of '%s', column=%d ", f.name, f.col)
+		}
+		if err = f.scan(v.Field(f.idx), s); err != nil {
 			return
 		}
 	}
-	return nil
+	if s.eod && !noEOD {
+		return errors.WithStack(io.EOF)
+	}
+	if s.skip && !noSkip {
+		return errors.WithStack(ErrSkipRow)
+	}
+	return lastErr
 }
