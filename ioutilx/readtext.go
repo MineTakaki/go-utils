@@ -10,7 +10,7 @@ import (
 )
 
 // ReadTextLines テキストを行単位に分割して取得します
-func ReadTextLines(rd io.Reader, noSkip bool, fn func(string) string) (lines []string, err error) {
+func ReadTextLines(rd io.Reader, fn func(string) error) (err error) {
 	r := bufio.NewReader(rd)
 	for {
 		var line string
@@ -25,12 +25,10 @@ func ReadTextLines(rd io.Reader, noSkip bool, fn func(string) string) (lines []s
 		}
 
 		if fn != nil {
-			line = fn(line)
+			if err = fn(line); err != nil {
+				return
+			}
 		}
-		if line == "" && !noSkip {
-			continue
-		}
-		lines = append(lines, line)
 	}
 	return
 }
