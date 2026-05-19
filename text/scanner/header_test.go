@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/MineTakaki/go-utils/text/scanner"
+	"github.com/MineTakaki/go-utils/types"
 )
 
 func TestWithHeadder(t *testing.T) {
@@ -18,6 +19,7 @@ func TestWithHeadder(t *testing.T) {
 		Col4 string         `header:"col4"`
 		Col5 sql.NullString `header:"col5"`
 		Col6 int            `header:"col6,required"`
+		Col7 types.Ymd      `header:"col7"`
 	}
 
 	headers := []string{
@@ -27,6 +29,7 @@ func TestWithHeadder(t *testing.T) {
 		"col1",
 		"col5",
 		"col6",
+		"col7",
 	}
 
 	rec := testT1{}
@@ -36,7 +39,7 @@ func TestWithHeadder(t *testing.T) {
 		t.Errorf("%+v", err)
 	}
 
-	err = scan.Scan(&rec, []string{"A", "B", "C", "D", "hhhh", "1234"})
+	err = scan.Scan(&rec, []string{"A", "B", "C", "D", "hhhh", "1234", "2026/12/31"})
 	if err != nil {
 		t.Errorf("%+v", err)
 	}

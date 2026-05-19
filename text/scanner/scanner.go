@@ -11,12 +11,12 @@ import (
 type (
 	//Scanner スキャナー
 	Scanner interface {
-		Scan(i interface{}, cols []string) error
+		Scan(i any, cols []string) error
 	}
 
 	//Scannable スキャナブル
 	Scannable interface {
-		Scan(interface{}) error
+		Scan(any) error
 	}
 
 	//ScanFunc フィールドスキャン関数
@@ -45,13 +45,13 @@ func _isScanMethod(t reflect.Type, f bool) bool {
 }
 
 // Scan ScannableインターフェイスのScanメソッドを実行します
-func Scan(v reflect.Value, i interface{}) (err error) {
+func Scan(v reflect.Value, i any) (err error) {
 	if conv.IsEmpty(i) {
 		return nil
 	}
 
 	//値をセットする為、アドレス参照を取得します
-	if v.Kind() == reflect.Struct {
+	if v.Kind() != reflect.Pointer {
 		v = v.Addr()
 	}
 
