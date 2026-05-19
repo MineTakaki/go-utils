@@ -113,6 +113,13 @@ func DefaultScanFunc(typ reflect.Type) (fn ScanFunc, err error) {
 		return nil
 	}
 
+	if AsScannable(typ) {
+		fn = func(v reflect.Value, s string) error {
+			return Scan(v, strings.TrimSpace(s))
+		}
+		return
+	}
+
 	switch typ.Kind() {
 	case reflect.String:
 		fn = func(v reflect.Value, s string) error {
@@ -124,12 +131,6 @@ func DefaultScanFunc(typ reflect.Type) (fn ScanFunc, err error) {
 	case reflect.Uint, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uint8:
 		fn = fnUint
 	default:
-		if AsScannable(typ) {
-			fn = func(v reflect.Value, s string) error {
-				return Scan(v, strings.TrimSpace(s))
-			}
-			return
-		}
 		err = errors.Wrapf(ErrScanData, "unkown type : %v", typ)
 	}
 
